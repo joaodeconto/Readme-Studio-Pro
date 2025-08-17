@@ -671,7 +671,7 @@
   MIT © Seu Nome
   `,
         'TOC (sumário)': `## Sumário
-  - [Instalação](#instalacoo)
+  - [Instalação](#instalacao)
   - [Uso](#uso)
   - [Exemplos](#exemplos)
   - [Screenshots](#screenshots)
@@ -775,6 +775,13 @@
         const rawTitle = m[2].trim();
         items.push({ level, title: emojifyPlain(rawTitle), anchor: slug(rawTitle) });
       }
+
+      tocBtn?.addEventListener('click', ()=>{
+      const toc = buildTOC(mdEl.value);
+      if(!toc){ alert('Nenhum heading encontrado'); return }
+      ins(`\n## Sumário\n${toc}\n`);
+      });
+
       if (!items.length) return '';
       const base = Math.min(...items.map(i => i.level));
       return items.map(i => '  '.repeat(i.level - base) + `- [${i.title}](#${i.anchor})`).join('\n');
