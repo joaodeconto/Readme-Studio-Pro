@@ -16,7 +16,7 @@ export function bindUI() {
   const tabs = $$('.tab');
   const stats = $('#stats');
   const useEmoji = $('#useEmoji');
-  const bakeEmoji = $("bakeEmoji");
+  const bakeEmoji = $("#bakeEmoji");
   const fetchBtn = $('#fetchGH');
 
   function countStats(s) {
