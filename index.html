@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>README Studio • One‑File (Pro)</title>
-  <meta name="description" content="Gerador/Editor de README.md para GitHub — com templates por stack, badges dinâmicos, callouts, colapsáveis, Mermaid e prévia com tema GitHub e syntax highlight." />
+  <meta name="description" content="Gerador/Editor de README.md para GitHub — com templates por stack, badges dinâmicos, callouts, colapsáveis, Mermaid, prévia com tema GitHub e syntax highlight, e leitura direta do README via owner/repo ou URL." />
   <style>
     :root{ --bg:#0b0c0f; --panel:#141720; --soft:#1b2030; --text:#eef1f5; --muted:#a9b2c3; --accent:#6ee7ff; --ring:#2a3348; --link:#58a6ff }
     @media (prefers-color-scheme: light) { :root{ --bg:#f5f7fb; --panel:#ffffff; --soft:#eef2f9; --text:#0b1220; --muted:#5b6475; --accent:#006dff; --ring:#cfd8ea; --link:#0969da } }
@@ -63,6 +63,10 @@
         <button class="btn" id="new">Novo</button>
         <button class="btn" id="open">Abrir .md</button>
         <button class="btn" id="save">Exportar README.md</button>
+        
+        <input id="ghInput" type="text" placeholder="owner/repo ou URL do README" style="min-width:320px" />
+        <button class="btn" id="fetchGH">Ler do GitHub</button>
+
         <div class="split"></div>
         <label class="btn" style="display:flex;gap:8px;align-items:center">Stack
           <select id="stack">
@@ -155,7 +159,7 @@
                 </select>
                 <button class="btn" id="addMermaid">Inserir</button>
               </div>
-              <div class="muted">GitHub renderiza Mermaid nativamente. A prévia local mostra como bloco de código.</div>
+              <div class="muted">GitHub renderiza Mermaid nativamente. A prévia aqui mostra só como bloco de código.</div>
             </div>
           </details>
 
@@ -215,7 +219,6 @@
       const cells=row.split('|').map(c=>c.trim()).filter(Boolean); return '<tr>'+cells.map(c=>'<td>'+c+'</td>').join('')+'</tr>'
     })
     src = src.replace(/(<tr>.*?<\/tr>\n?)+/gs,m=>'<table>'+m+'</table>')
-    // details blocks (keep raw)
     // paragraphs
     src = src.split(/\n{2,}/).map(blk=>/^\s*<(h\d|ul|ol|pre|table|blockquote|details|img|a)/.test(blk)?blk:`<p>${linkify(blk).replace(/\n/g,'<br>')}</p>`).join('\n')
     return src
@@ -249,7 +252,7 @@
     })
   }
 
-  function update(){ prev.innerHTML = mdToHtml(mdEl.value); $('#stats').textContent = countStats(mdEl.value); localStorage.setItem('readmeStudioPro', mdEl.value); if(!mdEl.hidden) return; highlightAll(); }
+  function update(){ prev.innerHTML = mdToHtml(mdEl.value); $('#stats').textContent = countStats(mdEl.value); localStorage.setItem('readmeStudioProGH', mdEl.value); if(!mdEl.hidden) return; highlightAll(); }
   function countStats(s){ const words=(s.match(/\b\w+\b/g)||[]).length; const heads=(s.match(/^#/gm)||[]).length; return `${words} palavras • ${heads} seções` }
 
   tabs.forEach(t=> t.addEventListener('click',()=>{ tabs.forEach(x=>x.dataset.active = (x===t)); const edit=t.dataset.tab==='edit'; mdEl.hidden=!edit; prev.hidden=edit; if(!edit) update(); }))
@@ -320,8 +323,107 @@
 
   // Stats + autosave
   mdEl.addEventListener('input', update)
-  mdEl.value = localStorage.getItem('readmeStudioPro') || `# Nome do Projeto\n\nBreve descrição…\n\n> [!TIP]\n> Use o painel à esquerda para inserir blocos prontos.\n`
+  mdEl.value = localStorage.getItem('readmeStudioProGH') || `# Nome do Projeto\n\nBreve descrição…\n\n> [!TIP]\n> Use o painel à esquerda para inserir blocos prontos.\n`
   update()
+
+  /* === Ler README direto do GitHub === */
+  function parseRepoSpec(spec){
+    spec = (spec||'').trim();
+    if(!spec) return null;
+    // URL?
+    try{
+      const u = new URL(spec);
+      if(/raw\.githubusercontent\.com$/.test(u.hostname)){
+        return { rawUrl: u.href };
+      }
+      if(/github\.com$/.test(u.hostname)){
+        const parts = u.pathname.split('/').filter(Boolean);
+        const owner = parts[0], repo = parts[1];
+        if(!owner || !repo) return null;
+        if(parts[2]==='blob' || parts[2]==='tree'){
+          const branch = parts[3];
+          const path = parts.slice(4).join('/');
+          return { owner, repo, branch, path }
+        }
+        return { owner, repo };
+      }
+    }catch(e){ /* not a URL */ }
+    // owner/repo@branch:path
+    const m = spec.match(/^[\w.-]+\/[\w.-]+(?:@[^:]+)?(?::.+)?$/);
+    if(m){
+      const mm = spec.match(/^([\w.-]+)\/([\w.-]+)(?:@([^:]+))?(?::(.+))?$/);
+      return { owner:mm[1], repo:mm[2], branch:mm[3], path:mm[4] }
+    }
+    return null;
+  }
+
+  function b64ToText(b64){
+    try{
+      const bin = atob(b64.replace(/\s/g,''));
+      const bytes = new Uint8Array([...bin].map(ch=>ch.charCodeAt(0)));
+      return new TextDecoder('utf-8').decode(bytes);
+    }catch(e){ return '' }
+  }
+
+  async function fetchReadme(spec){
+    if(!spec) throw new Error('Especificação inválida');
+    // Direct raw URL
+    if(spec.rawUrl){
+      const r = await fetch(spec.rawUrl, {cache:'no-store'});
+      if(!r.ok) throw new Error('Falha ao baixar RAW: '+r.status);
+      return await r.text();
+    }
+    const {owner, repo, branch, path} = spec;
+    if(owner && repo && !path){
+      // API readme — usa default_branch se não passar ref
+      const url = `https://api.github.com/repos/${owner}/${repo}/readme${branch?`?ref=${encodeURIComponent(branch)}`:''}`;
+      const r = await fetch(url, { headers: { 'Accept':'application/vnd.github.v3+json' }, cache:'no-store' });
+      if(!r.ok){ throw new Error('GitHub API: '+r.status); }
+      const j = await r.json();
+      if(j && j.content){ return b64ToText(j.content) }
+      // fallback para raw padrão
+      const def = branch || 'main';
+      for(const b of [def,'master']){
+        const ru = `https://raw.githubusercontent.com/${owner}/${repo}/${b}/README.md`;
+        const rr = await fetch(ru, {cache:'no-store'}); if(rr.ok) return await rr.text();
+      }
+      throw new Error('README não encontrado');
+    }
+    if(owner && repo && path){
+      const branches = branch? [branch] : ['main','master'];
+      for(const bb of branches){
+        const ru = `https://raw.githubusercontent.com/${owner}/${repo}/${bb}/${path}`;
+        const rr = await fetch(ru, {cache:'no-store'}); if(rr.ok) return await rr.text();
+      }
+      throw new Error('Arquivo não encontrado no repositório');
+    }
+    throw new Error('Entrada não reconhecida');
+  }
+
+  const fetchBtn = document.getElementById('fetchGH');
+  if(fetchBtn){
+    fetchBtn.addEventListener('click', async ()=>{
+      const inp = document.getElementById('ghInput');
+      const specStr = (inp.value||'').trim();
+      if(!specStr){ alert('Cole owner/repo, URL do repositório ou RAW do README'); return }
+      const old = fetchBtn.textContent; fetchBtn.textContent = 'Lendo…'; fetchBtn.disabled = true;
+      try{
+        const spec = parseRepoSpec(specStr);
+        const txt = await fetchReadme(spec);
+        mdEl.value = txt; update();
+      }catch(err){
+        console.error(err); alert('Não consegui ler o README: '+(err?.message||err));
+      }finally{ fetchBtn.textContent = old; fetchBtn.disabled = false }
+    })
+  }
+
+  // Dicas aceitas:
+  //  • owner/repo
+  //  • owner/repo@branch
+  //  • owner/repo@branch:path/README.md
+  //  • https://github.com/owner/repo (usa README na default_branch)
+  //  • https://github.com/owner/repo/blob/branch/path/README.md
+  //  • https://raw.githubusercontent.com/owner/repo/branch/path/README.md
   </script>
 </body>
 </html>
