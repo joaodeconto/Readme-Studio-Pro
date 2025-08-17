@@ -4,7 +4,6 @@
   --soft: #1b2030;
   --text: #eef1f5;
   --muted: #a9b2c3;
-  --accent: #6ee7ff;
   --ring: #2a3348;
   --link: #58a6ff
 }
@@ -12,11 +11,10 @@
 @media (prefers-color-scheme: light) {
   :root {
     --bg: #f5f7fb;
-    --panel: #ffffff;
+    --panel: #fff;
     --soft: #eef2f9;
     --text: #0b1220;
     --muted: #5b6475;
-    --accent: #006dff;
     --ring: #cfd8ea;
     --link: #0969da
   }
@@ -86,8 +84,8 @@ header {
 }
 
 select,
-input[type="text"],
-input[type="number"],
+input[type=text],
+input[type=number],
 textarea {
   padding: 8px;
   border-radius: 10px;
@@ -128,7 +126,7 @@ main {
   cursor: pointer
 }
 
-.tab[data-active="true"] {
+.tab[data-active=true] {
   background: var(--soft)
 }
 
@@ -143,7 +141,6 @@ main {
   overflow: auto
 }
 
-/* GitHub‑ish markdown theme */
 .md {
   line-height: 1.6
 }
@@ -224,36 +221,28 @@ main {
   margin: 8px 0
 }
 
-/* Syntax highlight (tiny) */
 .tok-k {
   color: #cf9fff;
   font-weight: 600
 }
 
-/* keyword */
 .tok-c {
   color: #8b949e;
   font-style: italic
 }
 
-/* comment */
 .tok-s {
   color: #a5d6ff
 }
 
-/* string */
 .tok-n {
   color: #ffd479
 }
 
-/* number */
 .tok-f {
   color: #7ee787
 }
 
-/* function */
-
-/* Debug */
 #dbgToggle {
   display: flex;
   align-items: center;
@@ -263,7 +252,7 @@ main {
 #dbgPanel {
   max-height: 200px;
   overflow: auto;
-  font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   background: var(--soft);
   border: 1px dashed var(--ring);
   border-radius: 10px;
@@ -275,8 +264,32 @@ main {
   color: var(--muted)
 }
 
-/* Mobile */
-@media (max-width: 860px) {
+#lintPanel ul {
+  margin: 0;
+  padding-left: 16px
+}
+
+#lintPanel li {
+  margin: 6px 0;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px dashed var(--ring);
+  background: color-mix(in oklab, var(--soft) 85%, transparent)
+}
+
+#lintPanel li.ok {
+  opacity: .8
+}
+
+#lintPanel li.err {
+  border-color: #f43f5e
+}
+
+#lintPanel li.warn {
+  border-color: #f59e0b
+}
+
+@media (max-width:860px) {
   .grid {
     grid-template-columns: 1fr
   }

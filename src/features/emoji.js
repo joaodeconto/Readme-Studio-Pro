@@ -1,6 +1,4 @@
-// Aplicação de emojis em headings de markdown (centralizado)
 export const EMO_MAP = [
-  // pt / en comuns
   [/^(readme|introdução|introducao|overview|sobre)/i, "📝"],
   [/(objetivos|goals|purpose)/i, "🎯"],
   [/(funcionalidades|features)/i, "✨"],
@@ -40,19 +38,16 @@ function fallbackByLevel(level) {
   return "📄";
 }
 
-/** Decide o emoji para um título. Se force=true, garante algum emoji (via fallback). */
 export function emojifyTitle(title, level=2, force=false) {
-  if (startsWithEmoji(title)) return title;            // já tem
+  if (startsWithEmoji(title)) return title;
   for (const [re, emo] of EMO_MAP) {
     if (re.test(title)) return `${emo} ${title}`;
   }
   return force ? `${fallbackByLevel(level)} ${title}` : title;
 }
 
-/** Aplica emojis em headings do markdown em-linha (opcional). */
 export function applyEmojis(md, enabled) {
   if (!enabled) return md;
-  // h1…h6 com fallback forçado
   md = md.replace(/^######\s+(.+)$/gm, (m,t)=>`###### ${emojifyTitle(t, 6, true)}`);
   md = md.replace(/^#####\s+(.+)$/gm,  (m,t)=>`##### ${emojifyTitle(t, 5, true)}`);
   md = md.replace(/^####\s+(.+)$/gm,   (m,t)=>`#### ${emojifyTitle(t, 4, true)}`);

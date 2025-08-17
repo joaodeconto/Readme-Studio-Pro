@@ -1,25 +1,28 @@
 <!doctype html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="utf-8" />
-  <title>README Studio • Pro</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="./styles.css">
+  <title>README Studio • Modular (Pro)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./styles.css" />
 </head>
+
 <body>
   <header>
     <div class="wrap">
-      <div class="title">README Studio • One-File (Pro)</div>
+      <div class="title">README Studio • Modular <span class="muted">(Pro)</span></div>
       <div class="toolbar">
         <button class="btn" id="new">Novo</button>
         <button class="btn" id="open">Abrir .md</button>
         <button class="btn" id="save">Exportar README.md</button>
-        <input id="ghInput" type="text" placeholder="owner/repo · owner/repo@branch · URL do repo · URL RAW do README" style="min-width:420px" />
+        <input id="ghInput" type="text" placeholder="owner/repo · owner/repo@branch · URL do repo · URL RAW do README"
+          style="min-width:420px" />
         <button class="btn" id="fetchGH">Ler do GitHub</button>
-        <label class="btn" id="dbgToggle"><input type="checkbox" id="showDbg"> Debug</label>
-        <label class="btn"><input type="checkbox" id="forceRaw"> Forçar RAW</label>
+        <label id="dbgToggle" class="btn"><input type="checkbox" id="showDbg"> Debug</label>
         <label class="btn"><input type="checkbox" id="useEmoji" checked> Emojis</label>
         <label class="btn"><input type="checkbox" id="bakeEmoji"> Gravar emojis no MD</label>
+
         <div class="split"></div>
         <label class="btn" style="display:flex;gap:8px;align-items:center">Stack
           <select id="stack">
@@ -38,13 +41,18 @@
         <button class="btn" id="tocAuto">TOC automático</button>
         <button class="btn" id="toList">→ Lista</button>
         <button class="btn" id="toCode">→ Código</button>
+
         <div class="split"></div>
+        <button class="btn" id="undo">Undo</button>
+        <button class="btn" id="redo">Redo</button>
+        <button class="btn" id="lint">Lint README</button>
         <button class="btn" id="copy">Copiar</button>
         <span class="muted" id="stats">0 palavras</span>
       </div>
       <div id="dbgPanel" hidden></div>
     </div>
   </header>
+
   <main class="wrap">
     <div class="grid">
       <div class="panel">
@@ -69,104 +77,94 @@
           <details>
             <summary><b>Badges (shields.io)</b></summary>
             <div class="fieldset">
-              <div class="row">
-                <input id="bLabel" placeholder="label" size="10">
-                <input id="bMsg" placeholder="message" size="12">
-                <input id="bColor" placeholder="color (ex: 0b0c0f)" size="12">
-                <input id="bLogo" placeholder="logo (ex: github)" size="10">
-              </div>
-              <div class="row">
-                <button class="btn" id="addBadge">Inserir badge</button>
-                <span class="muted">Ex.: label: build · message: passing · color: brightgreen</span>
-              </div>
+              <div class="row"><input id="bLabel" placeholder="label" size="10"> <input id="bMsg" placeholder="message"
+                  size="12"> <input id="bColor" placeholder="color (ex: 0b0c0f)" size="12"> <input id="bLogo"
+                  placeholder="logo (ex: github)" size="10"></div>
+              <div class="row"><button class="btn" id="addBadge">Inserir badge</button> <span class="muted">Ex.: label:
+                  build · message: passing · color: brightgreen</span></div>
             </div>
           </details>
           <details>
             <summary><b>Badges dinâmicos (GitHub)</b></summary>
             <div class="fieldset">
-              <div class="row">
-                <input id="ghRepo" placeholder="owner/repo (ex.: vercel/next.js)" size="30">
-                <button class="btn" id="addGHBadges">Inserir conjunto</button>
-              </div>
-              <div class="muted">Usa endpoints do shields: stars, forks, issues, license, last‑commit.</div>
+              <div class="row"><input id="ghRepo" placeholder="owner/repo (ex.: vercel/next.js)" size="30"> <button
+                  class="btn" id="addGHBadges">Inserir conjunto</button></div>
+              <div class="muted">stars, forks, issues, license, last‑commit.</div>
             </div>
           </details>
           <details>
             <summary><b>Bloco de código</b></summary>
-            <div class="row">
-              <input id="codeLang" placeholder="linguagem (ex.: bash, js, py)" size="18">
-              <button class="btn" id="addCode">Inserir bloco</button>
-            </div>
+            <div class="row"><input id="codeLang" placeholder="linguagem (ex.: bash, js, py)" size="18"> <button
+                class="btn" id="addCode">Inserir bloco</button></div>
           </details>
           <details>
-            <summary><b>Callout</b> (GitHub suporta <code>[!NOTE]</code>, <code>[!TIP]</code>, etc.)</summary>
-            <div class="row">
-              <select id="callType">
+            <summary><b>Callout</b></summary>
+            <div class="row"><select id="callType">
                 <option>NOTE</option>
                 <option>TIP</option>
                 <option>IMPORTANT</option>
                 <option>WARNING</option>
                 <option>CAUTION</option>
-              </select>
-              <button class="btn" id="addCall">Inserir</button>
-            </div>
+              </select> <button class="btn" id="addCall">Inserir</button></div>
           </details>
           <details>
-            <summary><b>Colapsável</b> (<code>&lt;details&gt;</code>)</summary>
-            <div class="row">
-              <input id="sumText" placeholder="Resumo…" size="20">
-              <button class="btn" id="addDetails">Inserir</button>
-            </div>
+            <summary><b>Colapsável</b></summary>
+            <div class="row"><input id="sumText" placeholder="Resumo…" size="20"> <button class="btn"
+                id="addDetails">Inserir</button></div>
           </details>
           <details>
             <summary><b>Tabela</b></summary>
-            <div class="row">
-              <input id="rows" type="number" value="2" min="1" max="10" style="width:90px">
-              <input id="cols" type="number" value="3" min="1" max="6" style="width:90px">
-              <button class="btn" id="addTable">Inserir</button>
-            </div>
+            <div class="row"><input id="rows" type="number" value="2" min="1" max="10" style="width:90px"> <input
+                id="cols" type="number" value="3" min="1" max="6" style="width:90px"> <button class="btn"
+                id="addTable">Inserir</button></div>
           </details>
           <details>
             <summary><b>Gráficos e Diagramas</b> (Mermaid)</summary>
-            <div class="fieldset">
-              <div class="row">
-                <select id="mermKind">
-                  <option value="flowchart">Flowchart</option>
-                  <option value="sequence">Sequence Diagram</option>
-                  <option value="gantt">Gantt</option>
-                  <option value="class">Class Diagram</option>
-                </select>
-                <button class="btn" id="addMermaid">Inserir</button>
-              </div>
-              <div class="muted">GitHub renderiza Mermaid nativamente. A prévia aqui mostra só como bloco de código.</div>
+            <div class="row">
+              <select id="mermKind">
+                <option value="flowchart">Flowchart</option>
+                <option value="sequence">Sequence Diagram</option>
+                <option value="gantt">Gantt</option>
+                <option value="class">Class Diagram</option>
+              </select>
+              <button class="btn" id="addMermaid">Inserir</button>
             </div>
           </details>
           <details>
             <summary><b>Imagem</b></summary>
             <div class="fieldset">
-              <div class="row">
-                <input id="imgAlt" placeholder="alt" size="16">
-                <input id="imgPath" placeholder="caminho/URL (ex: imgs/s1.png)" size="28">
-                <button class="btn" id="addImg">Inserir</button>
-              </div>
+              <div class="row"><input id="imgAlt" placeholder="alt" size="16"> <input id="imgPath"
+                  placeholder="caminho/URL (ex: imgs/s1.png)" size="28"> <button class="btn"
+                  id="addImg">Inserir</button></div>
               <div class="muted">Dica: arraste a imagem para sua pasta <code>imgs/</code> e use caminho relativo.</div>
             </div>
           </details>
         </div>
       </div>
+
       <div class="panel">
         <div class="tabs">
           <div class="tab" data-tab="edit" data-active="true">Editar</div>
-          <div class="tab" data-tab="preview">Pré-visualizar</div>
+          <div class="tab" data-tab="preview">Pré‑visualizar</div>
         </div>
         <textarea id="md" spellcheck="false" placeholder="# Título do Projeto\n\nBreve descrição…"></textarea>
         <div id="preview" class="preview md" hidden></div>
       </div>
     </div>
+
+    <section class="panel" id="lintPanel" hidden>
+      <h3 style="margin:0 0 8px">Relatório de Lint</h3>
+      <div id="lintSummary" class="muted" style="margin-bottom:6px"></div>
+      <ul id="lintList"></ul>
+    </section>
+
     <section style="margin:12px 0 32px" class="muted">
-      Como publicar: salve este arquivo como <code>index.html</code> num repo e ative GitHub Pages. Baixe seu README com “Exportar README.md”.
+      Como publicar: salve este arquivo como <code>index.html</code> em um repo (ex.: <b>readme-studio</b>). No GitHub,
+      Settings → Pages → Deploy from a branch.
     </section>
   </main>
+
   <script type="module" src="./src/main.js"></script>
 </body>
+
 </html>
