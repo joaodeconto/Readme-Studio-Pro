@@ -1,120 +1,12 @@
 import { log } from '../utils/log.js';
-
-// Decodifica conteúdo Base64 retornado pela API do GitHub
-function b64ToText(b64) {
-  try {
-    const bin=atob(b64.replace(/\s/g,''));
-    const bytes=new Uint8Array([...bin].map(ch=>ch.charCodeAt(0)));
-    return new TextDecoder('utf-8').decode(bytes);
-  } catch(e){ log('b64 decode error', e); return ''; }
-}
-
-// Faz uma requisição JSON para a API GitHub com cabeçalhos apropriados
-async function fetchJSON(url){
-  const r=await fetch(url,{headers:{'Accept':'application/vnd.github.v3+json','X-GitHub-Api-Version':'2022-11-28'},cache:'no-store',mode:'cors'});
-  const text=await r.text();
-  let data=null; try{ data=JSON.parse(text) }catch{}
-  log('HTTP', r.status, url, data?.message || text.slice(0,140));
-  return { ok:r.ok, status:r.status, headers:r.headers, data, text };
-}
-
-// Tenta baixar arquivos via raw.githubusercontent.com usando possíveis branches e caminhos
-async function tryRaw(owner, repo, branchHints=['main','master'], paths=['README.md','Readme.md','readme.md','README']){
-  for (const b of branchHints) for (const p of paths){
-    const ru=`https://raw.githubusercontent.com/${owner}/${repo}/${b}/${p}?ts=${Date.now()}`;
-    log('try RAW', ru);
-    const rr=await fetch(ru,{cache:'no-store',mode:'cors'});
-    if (rr.ok) return await rr.text();
-  }
-  throw new Error('RAW fallback falhou');
-}
-
-// Descobre o branch padrão de um repositório via API
-async function discoverDefaultBranch(owner, repo){
-  const { ok, data } = await fetchJSON(`https://api.github.com/repos/${owner}/${repo}`);
-  if (!ok) throw new Error('Falha ao obter repo');
-  return data.default_branch || 'main';
-}
-
-// Detecta se a API GitHub provavelmente está bloqueada (ex.: file://)
-function apiLikelyBlocked(){
-  return location.protocol === 'file:' || !/^https?:$/.test(location.protocol);
-}
-
-// Analisa strings como owner/repo@branch:path ou URLs para extrair componentes
-export function parseRepoSpec(spec){
-  spec=(spec||'').trim();
-  if (!spec) return null;
-  try{
-    const u=new URL(spec);
-    if (/raw\.githubusercontent\.com$/.test(u.hostname)) return { rawUrl:u.href };
-    if (/github\.com$/.test(u.hostname)){
-      const parts=u.pathname.split('/').filter(Boolean);
-      const owner=parts[0], repo=parts[1];
-      if (!owner||!repo) return null;
-      if (parts[2]==='blob'||parts[2]==='tree'){
-        const branch=parts[3];
-        const path=parts.slice(4).join('/');
-        return { owner, repo, branch, path };
-      }
-      return { owner, repo };
-    }
-  }catch{}
-  const mm = spec.match(/^([\w.-]+)\/([\w.-]+)(?:@([^:]+))?(?::(.+))?$/);
-  if (mm) return { owner:mm[1], repo:mm[2], branch:mm[3], path:mm[4] };
-  return null;
-}
-
-// Lê o README de um repositório (via API ou RAW) dependendo de opções e ambiente
-export async function fetchReadme(spec, { forceRaw=false } = {}){
-  if (!spec) throw new Error('Especificação inválida');
-
-  // URL bruta
-  if (spec.rawUrl){
-    const r=await fetch(spec.rawUrl,{cache:'no-store',mode:'cors'});
-    if (!r.ok) throw new Error('Falha ao baixar RAW: '+r.status);
-    return await r.text();
-  }
-
-  const { owner, repo, branch, path } = spec;
-  const avoidAPI = apiLikelyBlocked();
-
-  async function viaAPIReadme(){
-    const url=`https://api.github.com/repos/${owner}/${repo}/readme${branch?`?ref=${encodeURIComponent(branch)}`:''}`;
-    const { ok, status, data } = await fetchJSON(url);
-    if (!ok) throw new Error(`API /readme falhou ${status}: ${data?.message||''}`);
-    if (data?.content) return b64ToText(data.content);
-    throw new Error('API não retornou conteúdo do README');
-  }
-
-  async function viaAPIContents(pth, ref){
-    const { ok, data } = await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(pth)}?ref=${encodeURIComponent(ref)}`);
-    if (ok && data?.content) return b64ToText(data.content);
-    throw new Error('Arquivo não encontrado no repositório');
-  }
-
-  // Caminho específico
-  if (owner && repo && path){
-    const branches = branch ? [branch] : ['main','master','dev','stable'];
-    try { return await tryRaw(owner, repo, branches, [path]); }
-    catch(e){ log('RAW direto falhou, tentando API contents', e.message); }
-    const ref = branches[0];
-    return viaAPIContents(path, ref);
-  }
-
-  // README na raiz do repo
-  if (owner && repo && !path){
-    if (forceRaw || avoidAPI){
-      const def = branch || await discoverDefaultBranch(owner, repo).catch(()=> 'main');
-      return tryRaw(owner, repo, [def,'main','master','dev','stable']);
-    }
-    try { return await viaAPIReadme(); }
-    catch(e){
-      log('API readme falhou, fallback RAW', e.message);
-      const def = branch || await discoverDefaultBranch(owner, repo).catch(()=> 'main');
-      return tryRaw(owner, repo, [def,'main','master']);
-    }
-  }
-
+function b64ToText(b64){ try{ const bin=atob(b64.replace(/\s/g,'')); const bytes=new Uint8Array([...bin].map(ch=>ch.charCodeAt(0))); return new TextDecoder('utf-8').decode(bytes);}catch(e){ log('b64 decode error', e); return '';}}
+async function fetchJSON(url){ const r=await fetch(url,{headers:{'Accept':'application/vnd.github.v3+json','X-GitHub-Api-Version':'2022-11-28'},cache:'no-store',mode:'cors'}); const text=await r.text(); let data=null; try{data=JSON.parse(text)}catch{} log('HTTP', r.status, url, data?.message||text.slice(0,140)); return { ok:r.ok, status:r.status, headers:r.headers, data, text }; }
+async function tryRaw(owner, repo, branchHints=['main','master'], paths=['README.md','Readme.md','readme.md','README']){ for(const b of branchHints) for(const p of paths){ const ru=`https://raw.githubusercontent.com/${owner}/${repo}/${b}/${p}?ts=${Date.now()}`; log('try RAW', ru); const rr=await fetch(ru,{cache:'no-store',mode:'cors'}); if (rr.ok) return await rr.text(); } throw new Error('RAW fallback falhou'); }
+async function discoverDefaultBranch(owner,repo){ const {ok,data}=await fetchJSON(`https://api.github.com/repos/${owner}/${repo}`); if(!ok) throw new Error('Falha ao obter repo'); return data.default_branch||'main'; }
+function apiLikelyBlocked(){ return location.protocol==='file:' || !/^https?:$/.test(location.protocol); }
+export function parseRepoSpec(spec){ spec=(spec||'').trim(); if(!spec) return null; try{ const u=new URL(spec); if(/raw\.githubusercontent\.com$/.test(u.hostname)) return { rawUrl:u.href }; if(/github\.com$/.test(u.hostname)){ const parts=u.pathname.split('/').filter(Boolean); const owner=parts[0], repo=parts[1]; if(!owner||!repo) return null; if(parts[2]==='blob'||parts[2]==='tree'){ const branch=parts[3]; const path=parts.slice(4).join('/'); return { owner, repo, branch, path }; } return { owner, repo }; } }catch{} const mm=spec.match(/^([\w.-]+)\/([\w.-]+)(?:@([^:]+))?(?::(.+))?$/); if(mm) return { owner:mm[1], repo:mm[2], branch:mm[3], path:mm[4] }; return null; }
+export async function fetchReadme(spec,{forceRaw=false}={}){ if(!spec) throw new Error('Especificação inválida'); if(spec.rawUrl){ const r=await fetch(spec.rawUrl,{cache:'no-store',mode:'cors'}); if(!r.ok) throw new Error('Falha ao baixar RAW: '+r.status); return await r.text(); } const {owner,repo,branch,path}=spec; const avoidAPI=apiLikelyBlocked(); async function viaAPIReadme(){ const url=`https://api.github.com/repos/${owner}/${repo}/readme${branch?`?ref=${encodeURIComponent(branch)}`:''}`; const {ok,status,data}=await fetchJSON(url); if(!ok) throw new Error(`API /readme falhou ${status}: ${data?.message||''}`); if(data?.content) return b64ToText(data.content); throw new Error('API não retornou conteúdo do README'); } async function viaAPIContents(pth, ref){ const {ok,data}=await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(pth)}?ref=${encodeURIComponent(ref)}`); if(ok&&data?.content) return b64ToText(data.content); throw new Error('Arquivo não encontrado no repositório'); }
+  if(owner&&repo&&path){ const branches=branch?[branch]:['main','master','dev','stable']; try { return await tryRaw(owner,repo,branches,[path]); } catch(e){ const ref=branches[0]; return viaAPIContents(path,ref); } }
+  if(owner&&repo&&!path){ if(forceRaw||avoidAPI){ const def=branch||await discoverDefaultBranch(owner,repo).catch(()=> 'main'); return tryRaw(owner,repo,[def,'main','master','dev','stable']); } try { return await viaAPIReadme(); } catch(e){ const def=branch||await discoverDefaultBranch(owner,repo).catch(()=> 'main'); return tryRaw(owner,repo,[def,'main','master']); } }
   throw new Error('Entrada não reconhecida');
 }
