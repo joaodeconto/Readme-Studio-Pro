@@ -1,291 +1,70 @@
 <!doctype html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="utf-8" />
-  <title>README Studio • One‑File (Pro) — Debug Build</title>
-  <meta name="description"
-    content="Gerador/Editor de README.md para GitHub — com templates por stack, badges dinâmicos, callouts, colapsáveis, Mermaid, prévia com tema GitHub e syntax highlight, e leitura direta do README via owner/repo ou URL." />
+  <title>README Studio • One‑File (Pro) — Debug Build (Patched)</title>
+  <meta name="description" content="Gerador/Editor de README.md para GitHub — com templates por stack, badges dinâmicos, callouts, colapsáveis, Mermaid, prévia com tema GitHub e syntax highlight, e leitura direta do README via owner/repo ou URL." />
   <style>
-    :root {
-      --bg: #0b0c0f;
-      --panel: #141720;
-      --soft: #1b2030;
-      --text: #eef1f5;
-      --muted: #a9b2c3;
-      --accent: #6ee7ff;
-      --ring: #2a3348;
-      --link: #58a6ff
-    }
+    :root{ --bg:#0b0c0f; --panel:#141720; --soft:#1b2030; --text:#eef1f5; --muted:#a9b2c3; --accent:#6ee7ff; --ring:#2a3348; --link:#58a6ff }
+    @media (prefers-color-scheme: light) { :root{ --bg:#f5f7fb; --panel:#ffffff; --soft:#eef2f9; --text:#0b1220; --muted:#5b6475; --accent:#006dff; --ring:#cfd8ea; --link:#0969da } }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;background:radial-gradient(1200px 800px at 10% -10%, rgba(110,231,255,.08), transparent 60%), radial-gradient(800px 600px at 100% 0%, rgba(0,109,255,.08), transparent 60%), var(--bg); color:var(--text); font:500 15px/1.5 system-ui,-apple-system,Segoe UI,Roboto}
+    a{color:var(--link)}
+    header{position:sticky;top:0;z-index:5;backdrop-filter:saturate(1.2) blur(6px);background:color-mix(in oklab,var(--bg) 80%, transparent)}
+    .wrap{max-width:1200px;margin-inline:auto;padding:16px}
+    .title{font-size:clamp(22px,4vw,28px);font-weight:800;letter-spacing:.2px;display:flex;align-items:center;gap:10px}
 
-    @media (prefers-color-scheme: light) {
-      :root {
-        --bg: #f5f7fb;
-        --panel: #ffffff;
-        --soft: #eef2f9;
-        --text: #0b1220;
-        --muted: #5b6475;
-        --accent: #006dff;
-        --ring: #cfd8ea;
-        --link: #0969da
-      }
-    }
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .btn{padding:8px 12px;border-radius:12px;border:1px solid var(--ring);background:var(--panel);color:var(--text);cursor:pointer}
+    .split{flex:1}
+    select,input[type="text"],input[type="number"],textarea{padding:8px;border-radius:10px;border:1px solid var(--ring);background:var(--panel);color:var(--text)}
 
-    * {
-      box-sizing: border-box
-    }
+    main{display:grid;grid-template-columns:1fr;gap:12px}
+    .grid{display:grid;grid-template-columns:320px 1fr;gap:12px}
+    .panel{background:var(--panel);border:1px solid var(--ring);border-radius:14px;padding:12px}
 
-    html,
-    body {
-      height: 100%
-    }
+    .tabs{display:flex;border-bottom:1px dashed var(--ring);gap:8px;margin-bottom:8px}
+    .tab{padding:6px 10px;border-radius:10px;cursor:pointer}
+    .tab[data-active="true"]{background:var(--soft)}
 
-    body {
-      margin: 0;
-      background: radial-gradient(1200px 800px at 10% -10%, rgba(110, 231, 255, .08), transparent 60%), radial-gradient(800px 600px at 100% 0%, rgba(0, 109, 255, .08), transparent 60%), var(--bg);
-      color: var(--text);
-      font: 500 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto
-    }
-
-    a {
-      color: var(--link)
-    }
-
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 5;
-      backdrop-filter: saturate(1.2) blur(6px);
-      background: color-mix(in oklab, var(--bg) 80%, transparent)
-    }
-
-    .wrap {
-      max-width: 1200px;
-      margin-inline: auto;
-      padding: 16px
-    }
-
-    .title {
-      font-size: clamp(22px, 4vw, 28px);
-      font-weight: 800;
-      letter-spacing: .2px;
-      display: flex;
-      align-items: center;
-      gap: 10px
-    }
-
-    .toolbar {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 12px
-    }
-
-    .btn {
-      padding: 8px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--ring);
-      background: var(--panel);
-      color: var(--text);
-      cursor: pointer
-    }
-
-    .split {
-      flex: 1
-    }
-
-    select,
-    input[type="text"],
-    input[type="number"],
-    textarea {
-      padding: 8px;
-      border-radius: 10px;
-      border: 1px solid var(--ring);
-      background: var(--panel);
-      color: var(--text)
-    }
-
-    main {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 12px
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--ring);
-      border-radius: 14px;
-      padding: 12px
-    }
-
-    .tabs {
-      display: flex;
-      border-bottom: 1px dashed var(--ring);
-      gap: 8px;
-      margin-bottom: 8px
-    }
-
-    .tab {
-      padding: 6px 10px;
-      border-radius: 10px;
-      cursor: pointer
-    }
-
-    .tab[data-active="true"] {
-      background: var(--soft)
-    }
-
-    #md {
-      width: 100%;
-      height: 58vh;
-      resize: vertical
-    }
-
-    .preview {
-      height: 58vh;
-      overflow: auto
-    }
+    #md{width:100%;height:58vh;resize:vertical}
+    .preview{height:58vh;overflow:auto}
 
     /* GitHub‑ish markdown theme */
-    .md {
-      line-height: 1.6
-    }
-
-    .md h1 {
-      font-size: 1.9em;
-      margin: 16px 0 8px;
-      border-bottom: 1px solid var(--ring);
-      padding-bottom: 6px
-    }
-
-    .md h2 {
-      font-size: 1.6em;
-      margin: 14px 0 6px;
-      border-bottom: 1px solid var(--ring);
-      padding-bottom: 6px
-    }
-
-    .md h3 {
-      font-size: 1.3em;
-      margin: 12px 0 6px
-    }
-
-    .md p {
-      margin: 8px 0
-    }
-
-    .md a {
-      text-decoration: none
-    }
-
-    .md a:hover {
-      text-decoration: underline
-    }
-
-    .md code {
-      background: rgba(110, 231, 255, .15);
-      padding: 2px 6px;
-      border-radius: 6px
-    }
-
-    .md pre {
-      background: var(--soft);
-      border: 1px solid var(--ring);
-      padding: 12px;
-      border-radius: 12px;
-      overflow: auto
-    }
-
-    .md pre code {
-      background: transparent;
-      padding: 0
-    }
-
-    .md blockquote {
-      border-left: 4px solid var(--ring);
-      padding: 6px 10px;
-      margin: 8px 0;
-      background: color-mix(in oklab, var(--soft) 80%, transparent)
-    }
-
-    .md table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 10px 0
-    }
-
-    .md th,
-    .md td {
-      border: 1px solid var(--ring);
-      padding: 6px 8px
-    }
-
-    .md details {
-      border: 1px dashed var(--ring);
-      padding: 8px;
-      border-radius: 10px;
-      margin: 8px 0
-    }
+    .md{line-height:1.6}
+    .md h1{font-size:1.9em;margin:16px 0 8px;border-bottom:1px solid var(--ring);padding-bottom:6px}
+    .md h2{font-size:1.6em;margin:14px 0 6px;border-bottom:1px solid var(--ring);padding-bottom:6px}
+    .md h3{font-size:1.3em;margin:12px 0 6px}
+    .md p{margin:8px 0}
+    .md a{text-decoration:none}
+    .md a:hover{text-decoration:underline}
+    .md code{background:rgba(110,231,255,.15);padding:2px 6px;border-radius:6px}
+    .md pre{background:var(--soft);border:1px solid var(--ring);padding:12px;border-radius:12px;overflow:auto}
+    .md pre code{background:transparent;padding:0}
+    .md blockquote{border-left:4px solid var(--ring);padding:6px 10px;margin:8px 0;background:color-mix(in oklab,var(--soft) 80%, transparent)}
+    .md table{width:100%;border-collapse:collapse;margin:10px 0}
+    .md th,.md td{border:1px solid var(--ring);padding:6px 8px}
+    .md details{border:1px dashed var(--ring);padding:8px;border-radius:10px;margin:8px 0}
 
     /* Syntax highlight (tiny) */
-    .tok-k {
-      color: #cf9fff;
-      font-weight: 600
-    }
-
-    /* keyword */
-    .tok-c {
-      color: #8b949e;
-      font-style: italic
-    }
-
-    /* comment */
-    .tok-s {
-      color: #a5d6ff
-    }
-
-    /* string */
-    .tok-n {
-      color: #ffd479
-    }
-
-    /* number */
-    .tok-f {
-      color: #7ee787
-    }
-
-    /* function */
+    .tok-k{color:#cf9fff;font-weight:600} /* keyword */
+    .tok-c{color:#8b949e;font-style:italic} /* comment */
+    .tok-s{color:#a5d6ff} /* string */
+    .tok-n{color:#ffd479} /* number */
+    .tok-f{color:#7ee787} /* function */
 
     /* Debug */
-    #dbgToggle {
-      display: flex;
-      align-items: center;
-      gap: 6px
-    }
+    #dbgToggle{display:flex;align-items:center;gap:6px}
+    #dbgPanel{max-height:200px;overflow:auto;font:12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;background:var(--soft);border:1px dashed var(--ring);border-radius:10px;padding:10px;white-space:pre-wrap}
+    .muted{color:var(--muted)}
 
-    #dbgPanel {
-      max-height: 200px;
-      overflow: auto;
-      font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      background: var(--soft);
-      border: 1px dashed var(--ring);
-      border-radius: 10px;
-      padding: 10px;
-      white-space: pre-wrap
-    }
-
-    .muted {
-      color: var(--muted)
+    /* Mobile */
+    @media (max-width: 860px){
+      .grid{grid-template-columns:1fr}
+      #md,.preview{height:50vh}
     }
   </style>
 </head>
-
 <body>
   <header>
     <div class="wrap">
@@ -294,9 +73,8 @@
         <button class="btn" id="new">Novo</button>
         <button class="btn" id="open">Abrir .md</button>
         <button class="btn" id="save">Exportar README.md</button>
-
-        <input id="ghInput" type="text" placeholder="owner/repo · owner/repo@branch · URL do repo · URL RAW do README"
-          style="min-width:420px" />
+        
+        <input id="ghInput" type="text" placeholder="owner/repo · owner/repo@branch · URL do repo · URL RAW do README" style="min-width:420px" />
         <button class="btn" id="fetchGH">Ler do GitHub</button>
         <label id="dbgToggle" class="btn"><input type="checkbox" id="showDbg"> Debug</label>
         <label class="btn"><input type="checkbox" id="forceRaw"> Forçar RAW</label>
@@ -352,51 +130,37 @@
           <details>
             <summary><b>Badges (shields.io)</b></summary>
             <div class="fieldset">
-              <div class="row"><input id="bLabel" placeholder="label" size="10"> <input id="bMsg" placeholder="message"
-                  size="12"> <input id="bColor" placeholder="color (ex: 0b0c0f)" size="12"> <input id="bLogo"
-                  placeholder="logo (ex: github)" size="10"></div>
-              <div class="row"><button class="btn" id="addBadge">Inserir badge</button> <span class="muted">Ex.: label:
-                  build · message: passing · color: brightgreen</span></div>
+              <div class="row"><input id="bLabel" placeholder="label" size="10"> <input id="bMsg" placeholder="message" size="12"> <input id="bColor" placeholder="color (ex: 0b0c0f)" size="12"> <input id="bLogo" placeholder="logo (ex: github)" size="10"></div>
+              <div class="row"><button class="btn" id="addBadge">Inserir badge</button> <span class="muted">Ex.: label: build · message: passing · color: brightgreen</span></div>
             </div>
           </details>
 
           <details>
             <summary><b>Badges dinâmicos (GitHub)</b></summary>
             <div class="fieldset">
-              <div class="row"><input id="ghRepo" placeholder="owner/repo (ex.: vercel/next.js)" size="30"> <button
-                  class="btn" id="addGHBadges">Inserir conjunto</button></div>
+              <div class="row"><input id="ghRepo" placeholder="owner/repo (ex.: vercel/next.js)" size="30"> <button class="btn" id="addGHBadges">Inserir conjunto</button></div>
               <div class="muted">Usa endpoints do shields: stars, forks, issues, license, last‑commit.</div>
             </div>
           </details>
 
           <details>
             <summary><b>Bloco de código</b></summary>
-            <div class="row"><input id="codeLang" placeholder="linguagem (ex.: bash, js, py)" size="18"> <button
-                class="btn" id="addCode">Inserir bloco</button></div>
+            <div class="row"><input id="codeLang" placeholder="linguagem (ex.: bash, js, py)" size="18"> <button class="btn" id="addCode">Inserir bloco</button></div>
           </details>
 
           <details>
             <summary><b>Callout</b> (GitHub suporta <code>[!NOTE]</code>, <code>[!TIP]</code>, etc.)</summary>
-            <div class="row"><select id="callType">
-                <option>NOTE</option>
-                <option>TIP</option>
-                <option>IMPORTANT</option>
-                <option>WARNING</option>
-                <option>CAUTION</option>
-              </select> <button class="btn" id="addCall">Inserir</button></div>
+            <div class="row"><select id="callType"><option>NOTE</option><option>TIP</option><option>IMPORTANT</option><option>WARNING</option><option>CAUTION</option></select> <button class="btn" id="addCall">Inserir</button></div>
           </details>
 
           <details>
             <summary><b>Colapsável</b> (<code>&lt;details&gt;</code>)</summary>
-            <div class="row"><input id="sumText" placeholder="Resumo…" size="20"> <button class="btn"
-                id="addDetails">Inserir</button></div>
+            <div class="row"><input id="sumText" placeholder="Resumo…" size="20"> <button class="btn" id="addDetails">Inserir</button></div>
           </details>
 
           <details>
             <summary><b>Tabela</b></summary>
-            <div class="row"><input id="rows" type="number" value="2" min="1" max="10" style="width:90px"> <input
-                id="cols" type="number" value="3" min="1" max="6" style="width:90px"> <button class="btn"
-                id="addTable">Inserir</button></div>
+            <div class="row"><input id="rows" type="number" value="2" min="1" max="10" style="width:90px"> <input id="cols" type="number" value="3" min="1" max="6" style="width:90px"> <button class="btn" id="addTable">Inserir</button></div>
           </details>
 
           <details>
@@ -411,17 +175,14 @@
                 </select>
                 <button class="btn" id="addMermaid">Inserir</button>
               </div>
-              <div class="muted">GitHub renderiza Mermaid nativamente. A prévia aqui mostra só como bloco de código.
-              </div>
+              <div class="muted">GitHub renderiza Mermaid nativamente. A prévia aqui mostra só como bloco de código.</div>
             </div>
           </details>
 
           <details>
             <summary><b>Imagem</b></summary>
             <div class="fieldset">
-              <div class="row"><input id="imgAlt" placeholder="alt" size="16"> <input id="imgPath"
-                  placeholder="caminho/URL (ex: imgs/s1.png)" size="28"> <button class="btn"
-                  id="addImg">Inserir</button></div>
+              <div class="row"><input id="imgAlt" placeholder="alt" size="16"> <input id="imgPath" placeholder="caminho/URL (ex: imgs/s1.png)" size="28"> <button class="btn" id="addImg">Inserir</button></div>
               <div class="muted">Dica: arraste a imagem para sua pasta <code>imgs/</code> e use caminho relativo.</div>
             </div>
           </details>
@@ -429,440 +190,416 @@
       </div>
 
       <div class="panel">
-        <div class="tabs">
-          <div class="tab" data-tab="edit" data-active="true">Editar</div>
-          <div class="tab" data-tab="preview">Pré‑visualizar</div>
-        </div>
+        <div class="tabs"><div class="tab" data-tab="edit" data-active="true">Editar</div><div class="tab" data-tab="preview">Pré‑visualizar</div></div>
         <textarea id="md" spellcheck="false" placeholder="# Título do Projeto\n\nBreve descrição…"></textarea>
         <div id="preview" class="preview md" hidden></div>
       </div>
     </div>
 
-    <section style="margin:12px 0 32px" class="muted">Como publicar: salve este arquivo como <code>index.html</code> em
-      um repo (ex.: <b>readme-studio</b>). No GitHub, Settings → Pages → Deploy from a branch. Baixe seu README com
-      “Exportar README.md”.</section>
+    <section style="margin:12px 0 32px" class="muted">Como publicar: salve este arquivo como <code>index.html</code> em um repo (ex.: <b>readme-studio</b>). No GitHub, Settings → Pages → Deploy from a branch. Baixe seu README com “Exportar README.md”.</section>
   </main>
 
   <script>
-    const $ = (q, el = document) => el.querySelector(q); const $$ = (q, el = document) => [...el.querySelectorAll(q)]
-    const mdEl = $('#md'); const prev = $('#preview'); const tabs = $$('.tab');
-    const dbgPanel = $('#dbgPanel'); const showDbg = $('#showDbg'); const forceRaw = $('#forceRaw');
+  const $=(q,el=document)=>el.querySelector(q); const $$=(q,el=document)=>[...el.querySelectorAll(q)]
+  const mdEl = $('#md'); const prev = $('#preview'); const tabs=$$('.tab');
+  const dbgPanel = $('#dbgPanel'); const showDbg = $('#showDbg'); const forceRaw = $('#forceRaw');
 
-    const LOG = []; function log(...args) {
-      const line = args.map(x => {
-        try { return typeof x === 'string' ? x : JSON.stringify(x) } catch { return String(x) }
-      }).join(' ');
-      const ts = new Date().toISOString().slice(11, 19);
-      LOG.push(`[${ts}] ${line}`);
-      if (!dbgPanel.hidden) { dbgPanel.textContent = LOG.join('\n'); dbgPanel.scrollTop = dbgPanel.scrollHeight }
-      console.log('[README-STUDIO]', ...args);
+  const LOG=[]; function log(...args){ const line=args.map(x=>{
+      try{ return typeof x==='string'?x:JSON.stringify(x) }catch{ return String(x) }
+    }).join(' ');
+    const ts=new Date().toISOString().slice(11,19);
+    LOG.push(`[${ts}] ${line}`);
+    if(!dbgPanel.hidden){ dbgPanel.textContent = LOG.join('\n'); dbgPanel.scrollTop = dbgPanel.scrollHeight }
+    console.log('[README-STUDIO]',...args);
+  }
+  showDbg?.addEventListener('change',()=>{ dbgPanel.hidden = !showDbg.checked; if(!dbgPanel.hidden){ dbgPanel.textContent = LOG.join('\n') } });
+
+  // Tiny Markdown renderer (headings, lists, code fences, inline code, bold/italic, tables, blockquotes, links, images)
+  function esc(s){return s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}
+  function linkify(s){return s.replace(/\bhttps?:\/\/[^\s)]+/g, url=>`<a href="${url}" target="_blank" rel="noopener">${url}</a>`) }
+  function mdToHtml(src){
+    const slug=(t)=> (t||'').toLowerCase().replace(/[^a-z0-9 -]/g,'').trim().replace(/ +/g,'-');
+    // code fences
+    src = src.replace(/```([\w-]*)\n([\s\S]*?)```/g,(m,lang,code)=>`<pre><code class="lang-${(lang||'').toLowerCase()}">${esc(code)}</code></pre>`)
+    // images ![alt](src)
+    src = src.replace(/!\[([^\]]*)\]\(([^)]+)\)/g,(m,alt,src)=>`<img alt="${esc(alt)}" src="${esc(src)}" style="max-width:100%">`)
+    // links [text](url)
+    src = src.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,(m,t,url)=>`<a href="${url}" target="_blank" rel="noopener">${t}</a>`)
+    // inline code
+    src = src.replace(/`([^`]+)`/g,(m,t)=>`<code>${esc(t)}</code>`)
+    // bold/italic
+    src = src.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>')
+    // headings with slug ids
+    src = src.replace(/^###### +(.+)$/gm,(m,t)=>`<h6 id="${slug(t)}">${t}</h6>`)
+             .replace(/^##### +(.+)$/gm,(m,t)=>`<h5 id="${slug(t)}">${t}</h5>`)
+             .replace(/^#### +(.+)$/gm,(m,t)=>`<h4 id="${slug(t)}">${t}</h4>`)
+             .replace(/^### +(.+)$/gm,(m,t)=>`<h3 id="${slug(t)}">${t}</h3>`)
+             .replace(/^## +(.+)$/gm,(m,t)=>`<h2 id="${slug(t)}">${t}</h2>`)
+             .replace(/^# +(.+)$/gm,(m,t)=>`<h1 id="${slug(t)}">${t}</h1>`)
+    // blockquote + callouts
+    src = src.replace(/^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(.*)$/gmi,'<blockquote><b>$1:</b> $2</blockquote>')
+             .replace(/^>\s?(.+)$/gm,'<blockquote>$1</blockquote>')
+    // lists
+    src = src.replace(/^\s*[-*]\s+(.+)$/gm,'<li>$1</li>')
+    src = src.replace(/(<li>[\s\S]*?<\/li>\n?)+/g,m=>`<ul>${m}</ul>`)
+    // tables (naive pipes)
+    src = src.replace(/^\|(.+)\|$/gm,(m,row)=>{
+      const cells=row.split('|').map(c=>c.trim()).filter(Boolean); return '<tr>'+cells.map(c=>'<td>'+c+'</td>').join('')+'</tr>'
+    })
+    src = src.replace(/(<tr>.*?<\/tr>\n?)+/gs,m=>'<table>'+m+'</table>')
+    // paragraphs
+    src = src.split(/\n{2,}/).map(blk=>/^\s*<(h\d|ul|ol|pre|table|blockquote|details|img|a)/.test(blk)?blk:`<p>${linkify(blk).replace(/\n/g,'<br>')}</p>`).join('\n')
+    return src
+  }
+
+  // Minimal syntax highlight by regex (js/ts, py, bash, json, html, css)
+  const HL={
+    js:{k:/\b(abstract|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|finally|for|function|if|implements|import|in|instanceof|interface|let|new|null|package|private|protected|public|return|super|switch|this|throw|try|typeof|var|void|while|with|yield|async)\b/g,
+        c:/\/\*[\s\S]*?\*\/|\/\/.*$/gm, s:/'(?:\\'|[^'])*'|"(?:\\"|[^"])*"|`(?:\\`|[^`])*`/g, n:/\b\d+(?:\.\d+)?\b/g, f:/\b([A-Za-z_][\w$]*)(?=\s*\()/g},
+    py:{k:/\b(and|as|assert|async|await|break|class|continue|def|del|elif|else|except|False|finally|for|from|global|if|import|in|is|lambda|None|nonlocal|not|or|pass|raise|return|True|try|while|with|yield)\b/g,
+        c:/#.*/g, s:/'''[\s\S]*?'''|"""[\s\S]*?"""|'(?:\\'|[^'])*'|"(?:\\"|[^"])*"/g, n:/\b\d+(?:\.\d+)?\b/g, f:/\b([A-Za-z_][\w]*)\s*(?=\()/g},
+    bash:{k:/\b(if|then|fi|elif|else|for|in|do|done|case|esac|function|select|until|while)\b/g, c:/#.*/g, s:/'[^']*'|"[^"]*"/g, n:/\b\d+\b/g, f:/\b([A-Za-z_][\w-]*)\s*(?=\()/g},
+    json:{k:/(true|false|null)/g, c:/(?!x)x/g, s:/"(?:\\"|[^"])*"/g, n:/-?\b\d+(?:\.\d+)?\b/g, f:/(?!x)x/g},
+    css:{k:/\b(display|grid|flex|block|none|absolute|relative|color|background|border|padding|margin|font|position|content)\b/g, c:/\/\*[\s\S]*?\*\//g, s:/"[^\"]*"|'[^']*'/g, n:/\b\d+(px|em|rem|%)\b/g, f:/(?!x)x/g},
+    html:{k:/<\/?\w+[^>]*>/g, c:/(?!x)x/g, s:/"[^\"]*"|'[^']*'/g, n:/\b\d+\b/g, f:/(?!x)x/g}
+  }
+  function highlightCode(lang, code){
+    const L=HL[lang]||HL.js; let s=code
+    s=s.replace(L.c,m=>`<span class='tok-c'>${esc(m)}</span>`) // comments first
+    s=s.replace(L.s,m=>`<span class='tok-s'>${esc(m)}</span>`)
+    s=s.replace(L.k,m=>`<span class='tok-k'>${m}</span>`)
+    s=s.replace(L.n,m=>`<span class='tok-n'>${m}</span>`)
+    s=s.replace(L.f,(m,p1)=>`<span class='tok-f'>${p1}</span>`)
+    return s
+  }
+  function highlightAll(){
+    $$('#preview pre code').forEach(codeEl=>{
+      const lang=(codeEl.className.match(/lang-([\w-]+)/)||[])[1]||'js'
+      const src=codeEl.textContent
+      codeEl.innerHTML=highlightCode(lang, src)
+    })
+  }
+
+  function update(){ prev.innerHTML = mdToHtml(mdEl.value); $('#stats').textContent = countStats(mdEl.value); localStorage.setItem('readmeStudioProGH', mdEl.value); if(!mdEl.hidden) return; highlightAll(); }
+  function countStats(s){ const noCode=s.replace(/```[\s\S]*?```/g,''); const words=(noCode.match(/[A-Za-zÀ-ÿ0-9_]+/g)||[]).length; const heads=(noCode.match(/^#{1,6}\s/mg)||[]).length; return `${words} palavras • ${heads} seções` }
+
+  tabs.forEach(t=> t.addEventListener('click',()=>{ tabs.forEach(x=>x.dataset.active = (x===t)); const edit=t.dataset.tab==='edit'; mdEl.hidden=!edit; prev.hidden=edit; if(!edit) update(); }))
+
+  // File ops
+  $('#new').onclick=()=>{ if(confirm('Limpar conteúdo?')){ mdEl.value=''; update() } }
+  $('#save').onclick=()=>{ const a=document.createElement('a'); a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(mdEl.value); a.download='README.md'; a.click(); }
+  $('#copy').onclick=()=>{ navigator.clipboard.writeText(mdEl.value); }
+  $('#open').onclick=()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='.md,text/markdown,text/plain'; inp.onchange=e=>{ const f=inp.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ mdEl.value=r.result; update() }; r.readAsText(f) }; inp.click() }
+
+  // Insert helpers + transforms
+  function ins(txt){
+    const el=mdEl; const start=el.selectionStart; const end=el.selectionEnd;
+    const before=el.value.slice(0,start); const after=el.value.slice(end);
+    el.value=before+txt+after;
+    el.focus(); el.selectionStart = el.selectionEnd = start + txt.length;
+    update();
+  }
+  function getSel(){ const el=mdEl; return {start:el.selectionStart, end:el.selectionEnd, text: el.value.slice(el.selectionStart, el.selectionEnd)} }
+  function getLineRange(pos){
+    const v=mdEl.value;
+    let s=v.lastIndexOf('\n', pos-1)+1; if(s<0) s=0;
+    let e=v.indexOf('\n', pos); if(e<0) e=v.length;
+    return {start:s, end:e, text: v.slice(s,e)};
+  }
+  function toList(){
+    const sel=getSel();
+    let text=sel.text;
+    if(!text){ const line=getLineRange(sel.start); text=line.text; mdEl.selectionStart=line.start; mdEl.selectionEnd=line.end; }
+    const lines=text.split(/\r?\n/).map(l=> l.trim()? ( /^[-*] +/.test(l) ? l : '- '+l ) : l);
+    ins(lines.join('\n'));
+  }
+  function toCode(){
+    const sel=getSel();
+    let text=sel.text || getLineRange(sel.start).text;
+    const lang = ($('#codeLang')?.value||'').trim();
+    ins(`\n\`\`\`${lang}\n${text}\n\`\`\`\n`);
+  }
+  function buildTOC(md){
+    const mdNoCode = md.replace(/```[^]*?```/g,'');
+    const headings = [];
+    mdNoCode.split('\n').forEach(line=>{
+      const m=line.match(/^(#{1,6}) +(.+)/);
+      if(m){
+        const level=m[1].length; const title=m[2].trim();
+        if(level<=6){ const anchor=( (t)=> (t||'').toLowerCase().replace(/[^a-z0-9 -]/g,'').trim().replace(/ +/g,'-') )(title);
+          headings.push({level,title,anchor});
+        }
+      }
+    });
+    if(!headings.length) return '';
+    const base = Math.min(...headings.map(h=>h.level));
+    return headings.map(h=> '  '.repeat(Math.max(0,h.level-base)) + `- [${h.title}](#${h.anchor})`).join('\n');
+  }
+
+  $('#addSection').onclick=()=>{
+    const v=$('#section').value; const t={
+      'Header com Badges': `# Nome do Projeto\n\n[![build](https://img.shields.io/badge/build-passing-brightgreen)](#) [![license](https://img.shields.io/badge/license-MIT-blue)](#)\n\nBreve descrição do que o projeto faz.\n\n---\n`,
+      'Resumo / Pitch': `## Resumo\nExplique o problema, a solução e o impacto em 3–4 linhas.\n`,
+      'Instalação': `## Instalação\n\n\`\`\`bash\n# ex.:\nnpm i\n# ou\npip install pacote\n\`\`\`\n`,
+      'Uso': `## Uso\n\n\`\`\`bash\ncomando --help\n\`\`\`\n`,
+      'Exemplos': `## Exemplos\n- Exemplo 1\n- Exemplo 2\n`,
+      'Screenshots': `## Screenshots\n\n![Descrição](imgs/screenshot1.png)\n`,
+      'Roadmap': `## Roadmap\n- [ ] Item 1\n- [ ] Item 2\n`,
+      'Contribuindo': `## Contribuindo\nPRs são bem-vindos. Para mudanças maiores, abra uma issue para discutir o que você gostaria de alterar.\n`,
+      'Licença (MIT)': `## Licença\nMIT © Seu Nome\n`,
+      'TOC (sumário)': `## Sumário\n- [Instalação](#instalacao)\n- [Uso](#uso)\n- [Exemplos](#exemplos)\n- [Screenshots](#screenshots)\n- [Roadmap](#roadmap)\n- [Contribuindo](#contribuindo)\n- [Licença](#licenca)\n`
+    }[v]||''; if(t) ins('\n'+t+'\n') }
+
+  $('#addBadge').onclick=()=>{
+    const L=$('#bLabel').value||'badge'; const M=$('#bMsg').value||'ok'; const C=($('#bColor').value||'blue').replace(/^#/,'' ); const G=$('#bLogo').value; const url=`https://img.shields.io/badge/${encodeURIComponent(L)}-${encodeURIComponent(M)}-${C}${G?`?logo=${encodeURIComponent(G)}`:''}`; ins(`![${L}](${url}) `)
+  }
+
+  $('#addGHBadges').onclick=()=>{
+    const rr=($('#ghRepo').value||'').trim(); if(!rr||!rr.includes('/')){ alert('Use no formato owner/repo'); return }
+    const [o,r]=rr.split('/')
+    const set=[
+      `![stars](https://img.shields.io/github/stars/${o}/${r}?style=flat)`,
+      `![forks](https://img.shields.io/github/forks/${o}/${r}?style=flat)`,
+      `![issues](https://img.shields.io/github/issues/${o}/${r}?style=flat)`,
+      `![license](https://img.shields.io/github/license/${o}/${r}?style=flat)`,
+      `![last commit](https://img.shields.io/github/last-commit/${o}/${r}?style=flat)`
+    ].join(' ')
+    ins(set+'\n')
+  }
+
+  $('#addCode').onclick=()=>{ const lang=$('#codeLang').value||''; ins(`\n\`\`\`${lang}\n// código aqui\n\`\`\`\n`) }
+  $('#addCall').onclick=()=>{ const t=$('#callType').value||'NOTE'; ins(`\n> [!${t}]\n> Texto do aviso.\n`) }
+  $('#addDetails').onclick=()=>{ const s=$('#sumText').value||'Mais detalhes'; ins(`\n<details>\n<summary>${s}</summary>\n\nConteúdo oculto\n\n</details>\n`) }
+  $('#addTable').onclick=()=>{ const r=parseInt($('#rows').value||'2',10), c=parseInt($('#cols').value||'3',10); let md='\n|'; for(let j=0;j<c;j++) md+=` Col${j+1} |`; md+='\n|'+Array(c).fill('---').join('|')+'|\n'; for(let i=0;i<r;i++){ md+='|'; for(let j=0;j<c;j++) md+=' dado |'; md+='\n' } ins(md+'\n') }
+  $('#addMermaid').onclick=()=>{ const k=$('#mermKind').value; const ex={
+    flowchart:`\n\`\`\`mermaid\nflowchart TD\n  A[Start] --> B{Pergunta?}\n  B -- Sim --> C[Do it]\n  B -- Não --> D[Stop]\n\`\`\`\n`,
+    sequence:`\n\`\`\`mermaid\nsequenceDiagram\n  participant U as Usuário\n  participant S as Sistema\n  U->>S: request\n  S-->>U: response\n\`\`\`\n`,
+    gantt:`\n\`\`\`mermaid\n%%{init: {"theme": "neutral"}}%%\ngantt\n  title Roadmap\n  dateFormat  YYYY-MM-DD\n  section Core\n  Parser       :a1, 2025-08-01, 7d\n  UI           :after a1, 5d\n\`\`\`\n`,
+    class:`\n\`\`\`mermaid\nclassDiagram\n  class Repo{\n    +string name\n    +clone()\n  }\n\`\`\`\n`
+  }[k]; ins(ex||'') }
+
+  // Toolbar transforms
+  const tocBtn = document.getElementById('tocAuto');
+  const listBtn = document.getElementById('toList');
+  const codeBtn = document.getElementById('toCode');
+  tocBtn?.addEventListener('click', ()=>{ const toc=buildTOC(mdEl.value); if(!toc){ alert('Nenhum heading encontrado'); return } ins('\n## Sumário\n'+toc+'\n') });
+  listBtn?.addEventListener('click', toList);
+  codeBtn?.addEventListener('click', toCode);
+
+  // README padrão por stack
+  const TPL={
+    node:`# Nome do Projeto (Node.js)\n\n[![node](https://img.shields.io/badge/runtime-Node.js-43853d?logo=node.js&logoColor=white)](#) [![license](https://img.shields.io/badge/license-MIT-blue)](#)\n\n> Pitch curto: o que faz, para quem e por quê.\n\n## Instalação\n\n\`\`\`bash\nnpm i\n# ou\nyarn\n\`\`\`\n\n## Uso\n\n\`\`\`bash\nnpm run start\n\`\`\`\n\n## Configuração\nCrie um arquivo \`.env\` com as variáveis necessárias.\n\n## Scripts\n- \`build\`: compila\n- \`test\`: roda testes\n\n## Roadmap\n- [ ] Feature 1\n- [ ] Feature 2\n\n## Licença\nMIT © Seu Nome\n`,
+    python:`# Nome do Projeto (Python)\n\n[![python](https://img.shields.io/badge/python-3.11+-3776AB?logo=python&logoColor=white)](#) [![license](https://img.shields.io/badge/license-MIT-blue)](#)\n\n## Instalação\n\n\`\`\`bash\npip install -r requirements.txt\n\`\`\`\n\n## Uso\n\n\`\`\`bash\npython -m pacote --help\n\`\`\`\n\n## Exemplos\n\n\`\`\`py\nfrom pacote import main\nmain()\n\`\`\`\n\n## Licença\nMIT\n`,
+    dotnet:`# Nome do Projeto (.NET)\n\n[![dotnet](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white)](#)\n\n## Build\n\n\`\`\`bash\ndotnet build\n\`\`\`\n\n## Execução\n\n\`\`\`bash\ndotnet run --project src/Projeto\n\`\`\`\n\n## Testes\n\n\`\`\`bash\ndotnet test\n\`\`\`\n`,
+    android:`# Nome do Projeto (Android/Kotlin)\n\n[![android](https://img.shields.io/badge/Android-Gradle-3DDC84?logo=android&logoColor=white)](#)\n\n## Build\n\nAbra no Android Studio e rode.\n\n## APK\nSaída em \`app/build/outputs/apk\`.\n`,
+    go:`# Nome do Projeto (Go)\n\n[![go](https://img.shields.io/badge/Go-1.22-00ADD8?logo=go&logoColor=white)](#)\n\n## Instalação\n\n\`\`\`bash\ngo mod tidy\n\`\`\`\n\n## Uso\n\n\`\`\`bash\ngo run ./cmd/app\n\`\`\`\n`,
+    rust:`# Nome do Projeto (Rust)\n\n[![rust](https://img.shields.io/badge/Rust-stable-000?logo=rust&logoColor=white)](#)\n\n## Build\n\n\`\`\`bash\ncargo build --release\n\`\`\`\n\n## Uso\n\n\`\`\`bash\n./target/release/app\n\`\`\`\n`,
+    web:`# Nome do Projeto (Web)\n\n[![web](https://img.shields.io/badge/Web-HTML/CSS/JS-ffb703)](#)\n\n## Rodar local\nAbra \`index.html\` no navegador.\n\n## Estrutura\n- \`index.html\`\n- \`styles.css\`\n- \`script.js\`\n`,
+    unity:`# Nome do Projeto (Unity)\n\n[![unity](https://img.shields.io/badge/Unity-2022+-000?logo=unity&logoColor=white)](#)\n\n## Abrir\nAbra a pasta do projeto com o Unity Hub.\n\n## Build\nFile → Build Settings → Platform (PC/Quest) → Build.\n`
+  }
+  $('#gen').onclick=()=>{ const s=$('#stack').value; log('Gen template stack=',s); if(!s){ alert('Escolha uma stack'); return } if(!TPL[s]){ alert('Template não encontrado para '+s); return } mdEl.value = TPL[s]; update() }
+
+  // Stats + autosave
+  mdEl.addEventListener('input', update)
+  mdEl.value = localStorage.getItem('readmeStudioProGH') || `# Nome do Projeto\n\nBreve descrição…\n\n> [!TIP]\n> Use o painel à esquerda para inserir blocos prontos.\n`
+  update()
+
+  /* === Ler README direto do GitHub === */
+  function parseRepoSpec(spec){
+    spec = (spec||'').trim();
+    if(!spec) return null;
+    // URL?
+    try{
+      const u = new URL(spec);
+      if(/raw\.githubusercontent\.com$/.test(u.hostname)){
+        return { rawUrl: u.href };
+      }
+      if(/github\.com$/.test(u.hostname)){
+        const parts = u.pathname.split('/').filter(Boolean);
+        const owner = parts[0], repo = parts[1];
+        if(!owner || !repo) return null;
+        if(parts[2]==='blob' || parts[2]==='tree'){
+          const branch = parts[3];
+          const path = parts.slice(4).join('/');
+          return { owner, repo, branch, path }
+        }
+        return { owner, repo };
+      }
+    }catch(e){ /* not a URL */ }
+    // owner/repo@branch:path
+    const m = spec.match(/^[\w.-]+\/[\w.-]+(?:@[^:]+)?(?::.+)?$/);
+    if(m){
+      const mm = spec.match(/^([\w.-]+)\/([\w.-]+)(?:@([^:]+))?(?::(.+))?$/);
+      return { owner:mm[1], repo:mm[2], branch:mm[3], path:mm[4] }
     }
-    showDbg?.addEventListener('change', () => { dbgPanel.hidden = !showDbg.checked; if (!dbgPanel.hidden) { dbgPanel.textContent = LOG.join('\n') } });
+    return null;
+  }
 
-    // Tiny Markdown renderer (headings, lists, code fences, inline code, bold/italic, tables, blockquotes, links, images)
-    function esc(s) { return s.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])) }
-    function linkify(s) { return s.replace(/\bhttps?:\/\/[^\s)]+/g, url => `<a href="${url}" target="_blank" rel="noopener">${url}</a>`) }
-    function mdToHtml(src) {
-      const slug = (t) => (t || '').toLowerCase().replace(/[^a-z0-9 -]/g, '').trim().replace(/ +/g, '-');
-      {
-        // code fences
-        src = src.replace(/```([\w-]*)\n([\s\S]*?)```/g, (m, lang, code) => `<pre><code class="lang-${(lang || '').toLowerCase()}">${esc(code)}</code></pre>`)
-        // images ![alt](src)
-        src = src.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (m, alt, src) => `<img alt="${esc(alt)}" src="${esc(src)}" style="max-width:100%">`)
-        // links [text](url)
-        src = src.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, (m, t, url) => `<a href="${url}" target="_blank" rel="noopener">${t}</a>`)
-        // inline code
-        src = src.replace(/`([^`]+)`/g, (m, t) => `<code>${esc(t)}</code>`)
-        // bold/italic
-        src = src.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\*([^*]+)\*/g, '<i>$1</i>')
-        // headings
-        src = src.replace(/^###### +(.+)$/gm, (m, t) => `<h6 id="${slug(t)}">${t}</h6>`)
-          .replace(/^##### +(.+)$/gm, (m, t) => `<h5 id="${slug(t)}">${t}</h5>`)
-          .replace(/^#### +(.+)$/gm, (m, t) => `<h4 id="${slug(t)}">${t}</h4>`)
-          .replace(/^### +(.+)$/gm, (m, t) => `<h3 id="${slug(t)}">${t}</h3>`)
-          .replace(/^## +(.+)$/gm, (m, t) => `<h2 id="${slug(t)}">${t}</h2>`)
-          .replace(/^# +(.+)$/gm, (m, t) => `<h1 id="${slug(t)}">${t}</h1>`)
-        // blockquote + callouts
-        src = src.replace(/^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(.*)$/gmi, '<blockquote><b>$1:</b> $2</blockquote>')
-          .replace(/^>\s?(.+)$/gm, '<blockquote>$1</blockquote>')
-        // lists
-        src = src.replace(/^\s*[-*]\s+(.+)$/gm, '<li>$1</li>')
-        src = src.replace(/(<li>[^]*?<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
+  function b64ToText(b64){
+    try{
+      const bin = atob(b64.replace(/\s/g,''));
+      const bytes = new Uint8Array([...bin].map(ch=>ch.charCodeAt(0)));
+      return new TextDecoder('utf-8').decode(bytes);
+    }catch(e){ log('b64 decode error', e); return '' }
+  }
 
-        // tables (naive pipes)
-        src = src.replace(/^\|(.+)\|$/gm, (m, row) => {
-          const cells = row.split('|').map(c => c.trim()).filter(Boolean); return '<tr>' + cells.map(c => '<td>' + c + '</td>').join('') + '</tr>'
-        })
-        src = src.replace(/(<tr>.*?<\/tr>\n?)+/gs, m => '<table>' + m + '</table>')
-        // paragraphs
-        src = src.split(/\n{2,}/).map(blk => /^\s*<(h\d|ul|ol|pre|table|blockquote|details|img|a)/.test(blk) ? blk : `<p>${linkify(blk).replace(/\n/g, '<br>')}</p>`).join('\n')
-        return src
-      }
+  async function fetchJSON(url){
+    const r = await fetch(url, { headers: { 'Accept':'application/vnd.github.v3+json', 'X-GitHub-Api-Version':'2022-11-28' }, cache:'no-store', mode:'cors' });
+    const text = await r.text();
+    let data=null; try{ data = JSON.parse(text) }catch{ /* keep text */ }
+    log('HTTP', r.status, url, data?.message||text.slice(0,140));
+    return { ok:r.ok, status:r.status, headers:r.headers, data, text };
+  }
 
-      // Minimal syntax highlight by regex (js/ts, py, bash, json, html, css)
-      const HL = {
-        js: {
-          k: /\b(abstract|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|finally|for|function|if|implements|import|in|instanceof|interface|let|new|null|package|private|protected|public|return|super|switch|this|throw|try|typeof|var|void|while|with|yield|async)\b/g,
-          c: /\/\*[\s\S]*?\*\/|\/\/.*$/gm, s: /'(?:\\'|[^'])*'|"(?:\\"|[^"])*"|`(?:\\`|[^`])*`/g, n: /\b\d+(?:\.\d+)?\b/g, f: /\b([A-Za-z_][\w$]*)(?=\s*\()/g
-        },
-        py: {
-          k: /\b(and|as|assert|async|await|break|class|continue|def|del|elif|else|except|False|finally|for|from|global|if|import|in|is|lambda|None|nonlocal|not|or|pass|raise|return|True|try|while|with|yield)\b/g,
-          c: /#.*/g, s: /'''[\s\S]*?'''|"""[\s\S]*?"""|'(?:\\'|[^'])*'|"(?:\\"|[^"])*"/g, n: /\b\d+(?:\.\d+)?\b/g, f: /\b([A-Za-z_][\w]*)\s*(?=\()/g
-        },
-        bash: { k: /\b(if|then|fi|elif|else|for|in|do|done|case|esac|function|select|until|while)\b/g, c: /#.*/g, s: /'[^']*'|"[^"]*"/g, n: /\b\d+\b/g, f: /\b([A-Za-z_][\w-]*)\s*(?=\()/g },
-        json: { k: /(true|false|null)/g, c: /(?!x)x/g, s: /"(?:\\"|[^"])*"/g, n: /-?\b\d+(?:\.\d+)?\b/g, f: /(?!x)x/g },
-        css: { k: /\b(display|grid|flex|block|none|absolute|relative|color|background|border|padding|margin|font|position|content)\b/g, c: /\/\*[\s\S]*?\*\//g, s: /"[^\"]*"|'[^']*'/g, n: /\b\d+(px|em|rem|%)\b/g, f: /(?!x)x/g },
-        html: { k: /<\/?\w+[^>]*>/g, c: /(?!x)x/g, s: /"[^\"]*"|'[^']*'/g, n: /\b\d+\b/g, f: /(?!x)x/g }
-      }
-      function highlightCode(lang, code) {
-        const L = HL[lang] || HL.js; let s = code
-        s = s.replace(L.c, m => `<span class='tok-c'>${esc(m)}</span>`) // comments first
-        s = s.replace(L.s, m => `<span class='tok-s'>${esc(m)}</span>`)
-        s = s.replace(L.k, m => `<span class='tok-k'>${m}</span>`)
-        s = s.replace(L.n, m => `<span class='tok-n'>${m}</span>`)
-        s = s.replace(L.f, (m, p1) => `<span class='tok-f'>${p1}</span>`)
-        return s
-      }
-      function highlightAll() {
-        $$('#preview pre code').forEach(codeEl => {
-          const lang = (codeEl.className.match(/lang-([\w-]+)/) || [])[1] || 'js'
-          const src = codeEl.textContent
-          codeEl.innerHTML = highlightCode(lang, src)
-        })
-      }
-
-      function update() { prev.innerHTML = mdToHtml(mdEl.value); $('#stats').textContent = countStats(mdEl.value); localStorage.setItem('readmeStudioProGH', mdEl.value); if (!mdEl.hidden) return; highlightAll(); }
-      function countStats(s) { const words = (s.match(/\b\w+\b/g) || []).length; const heads = (s.match(/^#/gm) || []).length; return `${words} palavras • ${heads} seções` }
-
-      tabs.forEach(t => t.addEventListener('click', () => { tabs.forEach(x => x.dataset.active = (x === t)); const edit = t.dataset.tab === 'edit'; mdEl.hidden = !edit; prev.hidden = edit; if (!edit) update(); }))
-
-      // File ops
-      $('#new').onclick = () => { if (confirm('Limpar conteúdo?')) { mdEl.value = ''; update() } }
-      $('#save').onclick = () => { const a = document.createElement('a'); a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(mdEl.value); a.download = 'README.md'; a.click(); }
-      $('#copy').onclick = () => { navigator.clipboard.writeText(mdEl.value); }
-      $('#open').onclick = () => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.md,text/markdown,text/plain'; inp.onchange = e => { const f = inp.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { mdEl.value = r.result; update() }; r.readAsText(f) }; inp.click() }
-
-      // Insert helpers
-      function ins(txt) {
-        const el = mdEl;
-        const start = el.selectionStart; const end = el.selectionEnd;
-        const before = el.value.slice(0, start); const after = el.value.slice(end);
-        el.value = before + txt + after;
-        el.focus(); el.selectionStart = el.selectionEnd = start + txt.length;
-        update();
-      }
-      function getSel() { const el = mdEl; return { start: el.selectionStart, end: el.selectionEnd, text: el.value.slice(el.selectionStart, el.selectionEnd) } }
-      function getLineRange(pos) {
-        const v = mdEl.value;
-        let s = v.lastIndexOf('\n', pos - 1) + 1; if (s < 0) s = 0;
-        let e = v.indexOf('\n', pos); if (e < 0) e = v.length;
-        return { start: s, end: e, text: v.slice(s, e) };
-      }
-      function toList() {
-        const sel = getSel();
-        let text = sel.text;
-        if (!text) { const line = getLineRange(sel.start); text = line.text; mdEl.selectionStart = line.start; mdEl.selectionEnd = line.end; }
-        const lines = text.split('\n').map(l => l.trim() ? (/^[-*] +/.test(l) ? l : '- ' + l) : l);
-        ins(lines.join('\n'));
-      }
-      function toCode() {
-        const sel = getSel();
-        let text = sel.text || getLineRange(sel.start).text;
-        const lang = ($('#codeLang')?.value || '').trim();
-        ins(`\n\`\`\`${lang}\n${text}\n\`\`\`\n`);
-      }
-      function buildTOC(md) {
-        const mdNoCode = md.replace(/```[^]*?```/g, '');
-        const headings = [];
-        mdNoCode.split('\n').forEach(line => {
-          const m = line.match(/^(#{1,6}) +(.+)/);
-          if (m) {
-            const level = m[1].length; const title = m[2].trim();
-            if (level <= 6) {
-              const anchor = (t) => (t || '').toLowerCase().replace(/[^a-z0-9 -]/g, '').trim().replace(/ +/g, '-');
-              headings.push({ level, title, anchor: anchor(title) });
-            }
-          }
-        });
-        if (!headings.length) return '';
-        const base = Math.min(...headings.map(h => h.level));
-        return headings.map(h => '  '.repeat(Math.max(0, h.level - base)) + `- [${h.title}](#${h.anchor})`).join('\n');
-      }
-
-      $('#addSection').onclick = () => {
-        const v = $('#section').value; const t = {
-          'Header com Badges': `# Nome do Projeto\n\n[![build](https://img.shields.io/badge/build-passing-brightgreen)](#) [![license](https://img.shields.io/badge/license-MIT-blue)](#)\n\nBreve descrição do que o projeto faz.\n\n---\n`,
-          'Resumo / Pitch': `## Resumo\nExplique o problema, a solução e o impacto em 3–4 linhas.\n`,
-          'Instalação': `## Instalação\n\n\`\`\`bash\n# ex.:\nnp m i\n# ou\npip install pacote\n\`\`\`\n`,
-          'Uso': `## Uso\n\n\`\`\`bash\ncomando --help\n\`\`\`\n`,
-          'Exemplos': `## Exemplos\n- Exemplo 1\n- Exemplo 2\n`,
-          'Screenshots': `## Screenshots\n\n![Descrição](imgs/screenshot1.png)\n`,
-          'Roadmap': `## Roadmap\n- [ ] Item 1\n- [ ] Item 2\n`,
-          'Contribuindo': `## Contribuindo\nPRs são bem-vindos. Para mudanças maiores, abra uma issue para discutir o que você gostaria de alterar.\n`,
-          'Licença (MIT)': `## Licença\nMIT © Seu Nome\n`,
-          'TOC (sumário)': `## Sumário\n- [Instalação](#instalação)\n- [Uso](#uso)\n- [Exemplos](#exemplos)\n- [Screenshots](#screenshots)\n- [Roadmap](#roadmap)\n- [Contribuindo](#contribuindo)\n- [Licença](#licença)\n`
-        }[v] || ''; if (t) ins('\n' + t + '\n')
-      }
-
-      $('#addBadge').onclick = () => {
-        const L = $('#bLabel').value || 'badge'; const M = $('#bMsg').value || 'ok'; const C = ($('#bColor').value || 'blue').replace(/^#/, ''); const G = $('#bLogo').value; const url = `https://img.shields.io/badge/${encodeURIComponent(L)}-${encodeURIComponent(M)}-${C}${G ? `?logo=${encodeURIComponent(G)}` : ''}`; ins(`![${L}](${url}) `)
-      }
-
-      $('#addGHBadges').onclick = () => {
-        const rr = ($('#ghRepo').value || '').trim(); if (!rr || !rr.includes('/')) { alert('Use no formato owner/repo'); return }
-        const [o, r] = rr.split('/')
-        const set = [
-          `![stars](https://img.shields.io/github/stars/${o}/${r}?style=flat)`,
-          `![forks](https://img.shields.io/github/forks/${o}/${r}?style=flat)`,
-          `![issues](https://img.shields.io/github/issues/${o}/${r}?style=flat)`,
-          `![license](https://img.shields.io/github/license/${o}/${r}?style=flat)`,
-          `![last commit](https://img.shields.io/github/last-commit/${o}/${r}?style=flat)`
-        ].join(' ')
-        ins(set + '\n')
-      }
-
-      $('#addCode').onclick = () => { const lang = $('#codeLang').value || ''; ins(`\n\`\`\`${lang}\n// código aqui\n\`\`\`\n`) }
-      $('#addCall').onclick = () => { const t = $('#callType').value || 'NOTE'; ins(`\n> [!${t}]\n> Texto do aviso.\n`) }
-      $('#addDetails').onclick = () => { const s = $('#sumText').value || 'Mais detalhes'; ins(`\n<details>\n<summary>${s}</summary>\n\nConteúdo oculto\n\n</details>\n`) }
-      $('#addTable').onclick = () => { const r = parseInt($('#rows').value || '2', 10), c = parseInt($('#cols').value || '3', 10); let md = '\n|'; for (let j = 0; j < c; j++) md += ` Col${j + 1} |`; md += '\n|' + Array(c).fill('---').join('|') + '|\n'; for (let i = 0; i < r; i++) { md += '|'; for (let j = 0; j < c; j++) md += ' dado |'; md += '\n' } ins(md + '\n') }
-      $('#addMermaid').onclick = () => {
-        const k = $('#mermKind').value; const ex = {
-          flowchart: `\n\`\`\`mermaid\nflowchart TD\n  A[Start] --> B{Pergunta?}\n  B -- Sim --> C[Do it]\n  B -- Não --> D[Stop]\n\`\`\`\n`,
-          sequence: `\n\`\`\`mermaid\nsequenceDiagram\n  participant U as Usuário\n  participant S as Sistema\n  U->>S: request\n  S-->>U: response\n\`\`\`\n`,
-          gantt: `\n\`\`\`mermaid\n%%{init: {"theme": "neutral"}}%%\ngantt\n  title Roadmap\n  dateFormat  YYYY-MM-DD\n  section Core\n  Parser       :a1, 2025-08-01, 7d\n  UI           :after a1, 5d\n\`\`\`\n`,
-          class: `\n\`\`\`mermaid\nclassDiagram\n  class Repo{\n    +string name\n    +clone()\n  }\n\`\`\`\n`
-        }[k]; ins(ex || '')
-      }
-
-      // Toolbar transforms
-      const tocBtn = document.getElementById('tocAuto');
-      const listBtn = document.getElementById('toList');
-      const codeBtn = document.getElementById('toCode');
-
-      tocBtn?.addEventListener('click', () => {
-        const toc = buildTOC(mdEl.value);
-        if (!toc) { alert('Nenhum heading encontrado'); return }
-        ins(`\n## Sumário\n${toc}\n`);
-      });
-      listBtn?.addEventListener('click', toList);
-      codeBtn?.addEventListener('click', toCode);
-
-      // README padrão por stack
-      const TPL = {
-        node: `# Nome do Projeto (Node.js)\n\n[![node](https://img.shields.io/badge/runtime-Node.js-43853d?logo=node.js&logoColor=white)](#) [![license](https://img.shields.io/badge/license-MIT-blue)](#)\n\n> Pitch curto: o que faz, para quem e por quê.\n\n## Instalação\n\n\`\`\`bash\nnpm i\n# ou\nyarn\n\`\`\`\n\n## Uso\n\n\`\`\`bash\nnpm run start\n\`\`\`\n\n## Configuração\nCrie um arquivo \`.env\` com as variáveis necessárias.\n\n## Scripts\n- \`build\`: compila\n- \`test\`: roda testes\n\n## Roadmap\n- [ ] Feature 1\n- [ ] Feature 2\n\n## Licença\nMIT © Seu Nome\n`,
-        python: `# Nome do Projeto (Python)\n\n[![python](https://img.shields.io/badge/python-3.11+-3776AB?logo=python&logoColor=white)](#) [![license](https://img.shields.io/badge/license-MIT-blue)](#)\n\n## Instalação\n\n\`\`\`bash\npip install -r requirements.txt\n\`\`\`\n\n## Uso\n\n\`\`\`bash\npython -m pacote --help\n\`\`\`\n\n## Exemplos\n\n\`\`\`py\nfrom pacote import main\nmain()\n\`\`\`\n\n## Licença\nMIT\n`,
-        dotnet: `# Nome do Projeto (.NET)\n\n[![dotnet](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white)](#)\n\n## Build\n\n\`\`\`bash\ndotnet build\n\`\`\`\n\n## Execução\n\n\`\`\`bash\ndotnet run --project src/Projeto\n\`\`\`\n\n## Testes\n\n\`\`\`bash\ndotnet test\n\`\`\`\n`,
-        android: `# Nome do Projeto (Android/Kotlin)\n\n[![android](https://img.shields.io/badge/Android-Gradle-3DDC84?logo=android&logoColor=white)](#)\n\n## Build\n\nAbra no Android Studio e rode.\n\n## APK\nSaída em \`app/build/outputs/apk\`.\n`,
-        go: `# Nome do Projeto (Go)\n\n[![go](https://img.shields.io/badge/Go-1.22-00ADD8?logo=go&logoColor=white)](#)\n\n## Instalação\n\n\`\`\`bash\ngo mod tidy\n\`\`\`\n\n## Uso\n\n\`\`\`bash\ngo run ./cmd/app\n\`\`\`\n`,
-        rust: `# Nome do Projeto (Rust)\n\n[![rust](https://img.shields.io/badge/Rust-stable-000?logo=rust&logoColor=white)](#)\n\n## Build\n\n\`\`\`bash\ncargo build --release\n\`\`\`\n\n## Uso\n\n\`\`\`bash\n./target/release/app\n\`\`\`\n`,
-        web: `# Nome do Projeto (Web)\n\n[![web](https://img.shields.io/badge/Web-HTML/CSS/JS-ffb703)](#)\n\n## Rodar local\nAbra \`index.html\` no navegador.\n\n## Estrutura\n- \`index.html\`\n- \`styles.css\`\n- \`script.js\`\n`,
-        unity: `# Nome do Projeto (Unity)\n\n[![unity](https://img.shields.io/badge/Unity-2022+-000?logo=unity&logoColor=white)](#)\n\n## Abrir\nAbra a pasta do projeto com o Unity Hub.\n\n## Build\nFile → Build Settings → Platform (PC/Quest) → Build.\n`
-      }
-      $('#gen').onclick = () => { const s = $('#stack').value; log('Gen template stack=', s); if (!s) { alert('Escolha uma stack'); return } if (!TPL[s]) { alert('Template não encontrado para ' + s); return } mdEl.value = TPL[s]; update() }
-
-      // Stats + autosave
-      mdEl.addEventListener('input', update)
-      mdEl.value = localStorage.getItem('readmeStudioProGH') || `# Nome do Projeto\n\nBreve descrição…\n\n> [!TIP]\n> Use o painel à esquerda para inserir blocos prontos.\n`
-      update()
-
-      /* === Ler README direto do GitHub === */
-      function parseRepoSpec(spec) {
-        spec = (spec || '').trim();
-        if (!spec) return null;
-        // URL?
-        try {
-          const u = new URL(spec);
-          if (/raw\.githubusercontent\.com$/.test(u.hostname)) {
-            return { rawUrl: u.href };
-          }
-          if (/github\.com$/.test(u.hostname)) {
-            const parts = u.pathname.split('/').filter(Boolean);
-            const owner = parts[0], repo = parts[1];
-            if (!owner || !repo) return null;
-            if (parts[2] === 'blob' || parts[2] === 'tree') {
-              const branch = parts[3];
-              const path = parts.slice(4).join('/');
-              return { owner, repo, branch, path }
-            }
-            return { owner, repo };
-          }
-        } catch (e) { /* not a URL */ }
-        // owner/repo@branch:path
-        const m = spec.match(/^[\w.-]+\/[\w.-]+(?:@[^:]+)?(?::.+)?$/);
-        if (m) {
-          const mm = spec.match(/^([\w.-]+)\/([\w.-]+)(?:@([^:]+))?(?::(.+))?$/);
-          return { owner: mm[1], repo: mm[2], branch: mm[3], path: mm[4] }
-        }
-        return null;
-      }
-
-      function b64ToText(b64) {
-        try {
-          const bin = atob(b64.replace(/\s/g, ''));
-          const bytes = new Uint8Array([...bin].map(ch => ch.charCodeAt(0)));
-          return new TextDecoder('utf-8').decode(bytes);
-        } catch (e) { log('b64 decode error', e); return '' }
-      }
-
-      async function fetchJSON(url) {
-        const r = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json', 'X-GitHub-Api-Version': '2022-11-28' }, cache: 'no-store', mode: 'cors' });
-        const text = await r.text();
-        let data = null; try { data = JSON.parse(text) } catch { /* keep text */ }
-        log('HTTP', r.status, url, data?.message || text.slice(0, 140));
-        return { ok: r.ok, status: r.status, headers: r.headers, data, text };
-      }
-
-      async function tryRaw(owner, repo, branchHints = ['main', 'master'], pathsHints = ['README.md', 'Readme.md', 'readme.md']) {
-        for (const b of branchHints) {
-          for (const p of pathsHints) {
-            const ru = `https://raw.githubusercontent.com/${owner}/${repo}/${b}/${p}?ts=${Date.now()}`;
-            log('try RAW', ru);
-            const rr = await fetch(ru, { cache: 'no-store', mode: 'cors' });
-            if (rr.ok) { return await rr.text(); }
-          }
-        }
-        throw new Error('RAW fallback falhou');
-      }
-
-      async function discoverDefaultBranch(owner, repo) {
-        const { ok, data } = await fetchJSON(`https://api.github.com/repos/${owner}/${repo}`);
-        if (!ok) { throw new Error('Falha ao obter repo'); }
-        return data.default_branch || 'main';
-      }
-
-      function apiLikelyBlocked() {
-        // Em Pages deve ser OK; em file:// quase sempre bloqueia
-        const blocked = location.protocol === 'file:' || !/^https?:$/.test(location.protocol);
-        return blocked;
-      }
-
-      async function fetchReadme(spec) {
-        if (!spec) throw new Error('Especificação inválida');
-
-        // Direct raw URL
-        if (spec.rawUrl) {
-          const r = await fetch(spec.rawUrl, { cache: 'no-store', mode: 'cors' });
-          if (!r.ok) throw new Error('Falha ao baixar RAW: ' + r.status);
-          return await r.text();
-        }
-
-        const { owner, repo, branch, path } = spec;
-
-        if (forceRaw?.checked) {
-          log('Forçar RAW ativo');
-          if (owner && repo && !path) {
-            // 1) RAW-first (evita rate limit/CORS e funciona no Pages)
-            try {
-              return await tryRaw(owner, repo, ['main', 'master', 'dev', 'stable'], ['README.md', 'Readme.md', 'readme.md', 'README']);
-            } catch (e) {
-              log('RAW-first falhou, tentando API /readme', e.message);
-            }
-            // 2) API /readme (fallback)
-            const url = `https://api.github.com/repos/${owner}/${repo}/readme${branch ? `?ref=${encodeURIComponent(branch)}` : ''}`;
-            const { ok, status, data, headers } = await fetchJSON(url);
-            if (!ok) {
-              const rem = headers?.get?.('x-ratelimit-remaining');
-              log('API /readme falhou', status, data?.message, 'rateRemaining=', rem);
-              throw new Error('Não foi possível obter README pelo API');
-            }
-            if (data && data.content) { return b64ToText(data.content) }
-            throw new Error('API não retornou conteúdo do README');
-          }
-          if (owner && repo && path) {
-            // 1) RAW-first direto para o caminho informado
-            try {
-              return await tryRaw(owner, repo, branch ? [branch] : ['main', 'master', 'dev', 'stable'], [path]);
-            } catch (e) {
-              log('RAW direto falhou, tentando API contents', e.message);
-            }
-            // 2) API contents como fallback
-            const ref = branch || 'main';
-            const { ok, data } = await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(ref)}`);
-            if (ok && data && data.content) { return b64ToText(data.content) }
-            throw new Error('Arquivo não encontrado no repositório');
-          }
-        }
-
-        const shouldAvoidAPI = apiLikelyBlocked();
-        log('apiLikelyBlocked=', shouldAvoidAPI, 'host=', location.host);
-
-        if (owner && repo && !path) {
-          if (shouldAvoidAPI) {
-            const def = branch || await discoverDefaultBranch(owner, repo).catch(() => 'main');
-            return tryRaw(owner, repo, [def, 'main', 'master']);
-          }
-          const url = `https://api.github.com/repos/${owner}/${repo}/readme${branch ? `?ref=${encodeURIComponent(branch)}` : ''}`;
-          const { ok, status, data, text } = await fetchJSON(url);
-          if (!ok) {
-            log('API readme falhou', status, data?.message);
-            // Fallback: tentar RAW
-            const def = branch || await discoverDefaultBranch(owner, repo).catch(() => 'main');
-            return tryRaw(owner, repo, [def, 'main', 'master']);
-          }
-          if (data && data.content) { return b64ToText(data.content) }
-          // Fallback para RAW padrão
-          const def = branch || 'main';
-          return tryRaw(owner, repo, [def, 'main', 'master']);
-        }
-
-        if (owner && repo && path) {
-          const branches = branch ? [branch] : ['main', 'master'];
-          if (shouldAvoidAPI) {
-            return tryRaw(owner, repo, branches, [path]);
-          }
-          // Tentar RAW direto primeiro (mais simples)
-          try {
-            return await tryRaw(owner, repo, branches, [path]);
-          } catch (e) {
-            log('RAW direto falhou, tentando API contents', e.message);
-            const ref = branches[0];
-            const { ok, data } = await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(ref)}`);
-            if (ok && data && data.content) { return b64ToText(data.content) }
-            throw new Error('Arquivo não encontrado no repositório');
-          }
-        }
-        throw new Error('Entrada não reconhecida');
-      }
-
-      const fetchBtn = document.getElementById('fetchGH');
-      if (fetchBtn) {
-        fetchBtn.addEventListener('click', async () => {
-          const inp = document.getElementById('ghInput');
-          const specStr = (inp.value || '').trim();
-          if (!specStr) { alert('Cole owner/repo, URL do repositório ou RAW do README'); return }
-          const old = fetchBtn.textContent; fetchBtn.textContent = 'Lendo…'; fetchBtn.disabled = true;
-          try {
-            const spec = parseRepoSpec(specStr);
-            log('parse spec', specStr, spec);
-            const txt = await fetchReadme(spec);
-            if (!txt || !txt.trim()) throw new Error('README vazio ou não encontrado');
-            mdEl.value = txt; update();
-            log('README carregado. tamanho=', txt.length);
-          } catch (err) {
-            console.error(err); log('Erro', err?.message || String(err));
-            alert('Não consegui ler o README: ' + (err?.message || err));
-          } finally { fetchBtn.textContent = old; fetchBtn.disabled = false }
-        })
-      }
-
-      // Dicas aceitas:
-      //  • owner/repo
-      //  • owner/repo@branch
-      //  • owner/repo@branch:path/README.md
-      //  • https://github.com/owner/repo (usa README na default_branch)
-      //  • https://github.com/owner/repo/blob/branch/path/README.md
-      //  • https://raw.githubusercontent.com/owner/repo/branch/path/README.md
-
-      // Info de ambiente
-      log('Env', { protocol: location.protocol, host: location.host, href: location.href });
-      if (location.protocol === 'http:') {
-        log('Aviso: HTTP sem TLS — algumas APIs podem bloquear. Prefira HTTPS.');
-      }
-      if (location.hostname.endsWith('.github.io')) {
-        log('Rodando em GitHub Pages — CORS deve permitir chamadas à API GitHub.');
+  async function tryRaw(owner, repo, branchHints=['main','master'], pathsHints=['README.md','Readme.md','readme.md']){
+    for(const b of branchHints){
+      for(const p of pathsHints){
+        const ru = `https://raw.githubusercontent.com/${owner}/${repo}/${b}/${p}?ts=${Date.now()}`;
+        log('try RAW', ru);
+        const rr = await fetch(ru, {cache:'no-store', mode:'cors'});
+        if(rr.ok){ return await rr.text(); }
       }
     }
+    throw new Error('RAW fallback falhou');
+  }
+
+  async function discoverDefaultBranch(owner, repo){
+    const {ok,data} = await fetchJSON(`https://api.github.com/repos/${owner}/${repo}`);
+    if(!ok){ throw new Error('Falha ao obter repo'); }
+    return data.default_branch || 'main';
+  }
+
+  function apiLikelyBlocked(){
+    // Em Pages deve ser OK; em file:// quase sempre bloqueia
+    const blocked = location.protocol==='file:' || !/^https?:$/.test(location.protocol);
+    return blocked;
+  }
+
+  async function fetchReadme(spec){
+    if(!spec) throw new Error('Especificação inválida');
+
+    // Direct raw URL
+    if(spec.rawUrl){
+      const r = await fetch(spec.rawUrl, {cache:'no-store', mode:'cors'});
+      if(!r.ok) throw new Error('Falha ao baixar RAW: '+r.status);
+      return await r.text();
+    }
+
+    const {owner, repo, branch, path} = spec;
+
+    if(forceRaw?.checked){
+      log('Forçar RAW ativo');
+      if(owner && repo && !path){
+      // 1) RAW-first (evita rate limit/CORS e funciona no Pages)
+      try{
+        return await tryRaw(owner, repo, ['main','master','dev','stable'], ['README.md','Readme.md','readme.md','README']);
+      }catch(e){
+        log('RAW-first falhou, tentando API /readme', e.message);
+      }
+      // 2) API /readme (fallback)
+      const url = `https://api.github.com/repos/${owner}/${repo}/readme${branch?`?ref=${encodeURIComponent(branch)}`:''}`;
+      const {ok,status,data,headers} = await fetchJSON(url);
+      if(!ok){
+        const rem = headers?.get?.('x-ratelimit-remaining');
+        log('API /readme falhou', status, data?.message, 'rateRemaining=', rem);
+        throw new Error('Não foi possível obter README pelo API');
+      }
+      if(data && data.content){ return b64ToText(data.content) }
+      throw new Error('API não retornou conteúdo do README');
+    }
+      if(owner && repo && path){
+      // 1) RAW-first direto para o caminho informado
+      try{
+        return await tryRaw(owner, repo, branch? [branch] : ['main','master','dev','stable'], [path]);
+      }catch(e){
+        log('RAW direto falhou, tentando API contents', e.message);
+      }
+      // 2) API contents como fallback
+      const ref = branch || 'main';
+      const {ok,data} = await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(ref)}`);
+      if(ok && data && data.content){ return b64ToText(data.content) }
+      throw new Error('Arquivo não encontrado no repositório');
+    }
+    }
+
+    const shouldAvoidAPI = apiLikelyBlocked();
+    log('apiLikelyBlocked=', shouldAvoidAPI, 'host=', location.host);
+
+    if(owner && repo && !path){
+      if(shouldAvoidAPI){
+        const def = branch || await discoverDefaultBranch(owner, repo).catch(()=> 'main');
+        return tryRaw(owner, repo, [def,'main','master']);
+      }
+      const url = `https://api.github.com/repos/${owner}/${repo}/readme${branch?`?ref=${encodeURIComponent(branch)}`:''}`;
+      const {ok,status,data,text} = await fetchJSON(url);
+      if(!ok){
+        log('API readme falhou', status, data?.message);
+        // Fallback: tentar RAW
+        const def = branch || await discoverDefaultBranch(owner, repo).catch(()=> 'main');
+        return tryRaw(owner, repo, [def,'main','master']);
+      }
+      if(data && data.content){ return b64ToText(data.content) }
+      // Fallback para RAW padrão
+      const def = branch || 'main';
+      return tryRaw(owner, repo, [def,'main','master']);
+    }
+
+    if(owner && repo && path){
+      const branches = branch? [branch] : ['main','master'];
+      if(shouldAvoidAPI){
+        return tryRaw(owner, repo, branches, [path]);
+      }
+      // Tentar RAW direto primeiro (mais simples)
+      try{
+        return await tryRaw(owner, repo, branches, [path]);
+      }catch(e){
+        log('RAW direto falhou, tentando API contents', e.message);
+        const ref = branches[0];
+        const {ok,data} = await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(ref)}`);
+        if(ok && data && data.content){ return b64ToText(data.content) }
+        throw new Error('Arquivo não encontrado no repositório');
+      }
+    }
+    throw new Error('Entrada não reconhecida');
+  }
+
+  const fetchBtn = document.getElementById('fetchGH');
+  if(fetchBtn){
+    fetchBtn.addEventListener('click', async ()=>{
+      const inp = document.getElementById('ghInput');
+      const specStr = (inp.value||'').trim();
+      if(!specStr){ alert('Cole owner/repo, URL do repositório ou RAW do README'); return }
+      const old = fetchBtn.textContent; fetchBtn.textContent = 'Lendo…'; fetchBtn.disabled = true;
+      try{
+        const spec = parseRepoSpec(specStr);
+        log('parse spec', specStr, spec);
+        const txt = await fetchReadme(spec);
+        if(!txt || !txt.trim()) throw new Error('README vazio ou não encontrado');
+        mdEl.value = txt; update();
+        log('README carregado. tamanho=', txt.length);
+      }catch(err){
+        console.error(err); log('Erro', err?.message||String(err));
+        alert('Não consegui ler o README: '+(err?.message||err));
+      }finally{ fetchBtn.textContent = old; fetchBtn.disabled = false }
+    })
+  }
+
+  // Dicas aceitas:
+  //  • owner/repo
+  //  • owner/repo@branch
+  //  • owner/repo@branch:path/README.md
+  //  • https://github.com/owner/repo (usa README na default_branch)
+  //  • https://github.com/owner/repo/blob/branch/path/README.md
+  //  • https://raw.githubusercontent.com/owner/repo/branch/path/README.md
+
+  // Info de ambiente
+  log('Env', { protocol: location.protocol, host: location.host, href: location.href });
+  if(location.protocol==='http:'){
+    log('Aviso: HTTP sem TLS — algumas APIs podem bloquear. Prefira HTTPS.');
+  }
+  if(location.hostname.endsWith('.github.io')){
+    log('Rodando em GitHub Pages — CORS deve permitir chamadas à API GitHub.');
+  }
   </script>
-</body> npm i
-
+</body>
 </html>
