@@ -477,24 +477,22 @@
     function esc(s) { return s.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])) }
     function linkify(s) { return s.replace(/\bhttps?:\/\/[^\s)]+/g, url => `<a href="${url}" target="_blank" rel="noopener">${url}</a>`) }
     function mdToHtml(src) {
-      const slug = (t) => (t || '').toLowerCase().replace(/[^a-z0-9 -]/g, '').trim().replace(/ +/g, '-');
-      // code fences
-      src = src.replace(/```([\w-]*)\n([\s\S]*?)```/g, (m, lang, code) => `<pre><code class="lang-${(lang || '').toLowerCase()}">${esc(code)}</code></pre>`)
-      // images ![alt](src)
-      src = src.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (m, alt, src) => `<img alt="${esc(alt)}" src="${esc(src)}" style="max-width:100%">`)
-      // links [text](url)
-      src = src.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, (m, t, url) => `<a href="${url}" target="_blank" rel="noopener">${t}</a>`)
-      // inline code
-      src = src.replace(/`([^`]+)`/g, (m, t) => `<code>${esc(t)}</code>`)
-      // bold/italic
-      src = src.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\*([^*]+)\*/g, '<i>$1</i>')
-      // headings with slug ids
-      src = src.replace(/^###### +(.+)$/gm, (m, t) => `<h6 id="${slug(t)}">${t}</h6>`)
-        .replace(/^##### +(.+)$/gm, (m, t) => `<h5 id="${slug(t)}">${t}</h5>`)
-        .replace(/^#### +(.+)$/gm, (m, t) => `<h4 id="${slug(t)}">${t}</h4>`)
-        .replace(/^### +(.+)$/gm, (m, t) => `<h3 id="${slug(t)}">${t}</h3>`)
-        .replace(/^## +(.+)$/gm, (m, t) => `<h2 id="${slug(t)}">${t}</h2>`)
-        .replace(/^# +(.+)$/gm, (m, t) => `<h1 id="${slug(t)}">${t}</h1>`)
+      // helpers
+      const slug = (t) => (t || '')
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+        .replace(/[\u2190-\u2BFF\u2600-\u27BF\u{1F000}-\u{1FAFF}]/gu, '') // tira emoji/símbolos
+        .replace(/[^a-z0-9 -]/g, '') // só a-z0-9, espaço e hífen
+        .trim().replace(/ +/g, '-');
+
+      // headings (usando slug acima)
+      src = src.replace(/^######\s?(.+)$/gm, (m, t) => `<h6 id="${slug(t)}">${t}</h6>`)
+        .replace(/^#####\s?(.+)$/gm, (m, t) => `<h5 id="${slug(t)}">${t}</h5>`)
+        .replace(/^####\s?(.+)$/gm, (m, t) => `<h4 id="${slug(t)}">${t}</h4>`)
+        .replace(/^###\s?(.+)$/gm, (m, t) => `<h3 id="${slug(t)}">${t}</h3>`)
+        .replace(/^##\s?(.+)$/gm, (m, t) => `<h2 id="${slug(t)}">${t}</h2>`)
+        .replace(/^#\s?(.+)$/gm, (m, t) => `<h1 id="${slug(t)}">${t}</h1>`);
+
       // blockquote + callouts
       src = src.replace(/^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(.*)$/gmi, '<blockquote><b>$1:</b> $2</blockquote>')
         .replace(/^>\s?(.+)$/gm, '<blockquote>$1</blockquote>')
@@ -673,13 +671,13 @@
   MIT © Seu Nome
   `,
         'TOC (sumário)': `## Sumário
-  - [Instalação](#instalação)
+  - [Instalação](#instalacoo)
   - [Uso](#uso)
   - [Exemplos](#exemplos)
   - [Screenshots](#screenshots)
   - [Roadmap](#roadmap)
   - [Contribuindo](#contribuindo)
-  - [Licença](#licença)
+  - [Licença](#licenca)
   `
       }[v] || '';
       let out = t; if (useEmoji?.checked) out = applyEmojis(out);
@@ -718,7 +716,6 @@
     }
 
     // Toolbar transforms
-    const tocBtn = document.getElementById('tocAuto');
     const listBtn = document.getElementById('toList');
     const codeBtn = document.getElementById('toCode');
     tocBtn?.addEventListener('click', () => { const toc = buildTOC(mdEl.value); if (!toc) { alert('Nenhum heading encontrado'); return } ins('\n## Sumário\n' + toc + '\n') });
@@ -746,6 +743,42 @@
     mdEl.addEventListener('input', update)
     mdEl.value = localStorage.getItem('readmeStudioProGH') || `# Nome do Projeto\n\nBreve descrição…\n\n> [!TIP]\n> Use o painel à esquerda para inserir blocos prontos.\n`
     update()
+
+    // === TOC automático (usa o mesmo slug dos headings) ===
+    function buildTOC(md) {
+      const withoutCode = md.replace(/```[^]*?```/g, ''); // ignora blocos de código
+      const lines = withoutCode.split('\n');
+
+      // mesmo slug da seção 3
+      const slug = (t) => (t || '')
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[\u2190-\u2BFF\u2600-\u27BF\u{1F000}-\u{1FAFF}]/gu, '')
+        .replace(/[^a-z0-9 -]/g, '')
+        .trim().replace(/ +/g, '-');
+
+      // emoji no texto do TOC (não entra no slug)
+      const EMO = { 'instalação': '⚙️', 'uso': '🚀', 'exemplos': '🧪', 'screenshots': '🖼️', 'roadmap': '🗺️', 'contribuindo': '🤝', 'licença': '📄', 'sumário': '🧭', 'readme': '📦', 'introdução': '📝' };
+      const startsWithEmoji = s => /^[\u2190-\u2BFF\u2600-\u27BF\u{1F000}-\u{1FAFF}]/u.test((s || '').trim());
+      function emojifyPlain(title) {
+        if (!useEmoji?.checked || startsWithEmoji(title)) return title;
+        const t = title.trim().toLowerCase();
+        for (const k in EMO) { if (t.includes(k)) return `${EMO[k]} ${title}`; }
+        return title;
+      }
+
+      const items = [];
+      for (const ln of lines) {
+        const m = ln.match(/^(#{1,6})\s+(.+)/);
+        if (!m) continue;
+        const level = m[1].length;
+        const rawTitle = m[2].trim();
+        items.push({ level, title: emojifyPlain(rawTitle), anchor: slug(rawTitle) });
+      }
+      if (!items.length) return '';
+      const base = Math.min(...items.map(i => i.level));
+      return items.map(i => '  '.repeat(i.level - base) + `- [${i.title}](#${i.anchor})`).join('\n');
+    }
 
     /* === Ler README direto do GitHub === */
     function parseRepoSpec(spec) {
