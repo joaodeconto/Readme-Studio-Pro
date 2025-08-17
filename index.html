@@ -606,22 +606,42 @@
       const lang = ($('#codeLang')?.value || '').trim();
       ins(`\n\`\`\`${lang}\n${text}\n\`\`\`\n`);
     }
+
+        // === TOC automático (usa o mesmo slug dos headings) ===
     function buildTOC(md) {
-      const mdNoCode = md.replace(/```[^]*?```/g, '');
-      const headings = [];
-      mdNoCode.split('\n').forEach(line => {
-        const m = line.match(/^(#{1,6}) +(.+)/);
-        if (m) {
-          const level = m[1].length; const title = m[2].trim();
-          if (level <= 6) {
-            const anchor = ((t) => (t || '').toLowerCase().replace(/[^a-z0-9 -]/g, '').trim().replace(/ +/g, '-'))(title);
-            headings.push({ level, title, anchor });
-          }
-        }
-      });
-      if (!headings.length) return '';
-      const base = Math.min(...headings.map(h => h.level));
-      return headings.map(h => '  '.repeat(Math.max(0, h.level - base)) + `- [${h.title}](#${h.anchor})`).join('\n');
+      const withoutCode = md.replace(/```[^]*?```/g, ''); // ignora blocos de código
+      const lines = withoutCode.split('\n');
+
+      // mesmo slug da seção 3
+      const slug = (t) => (t || '')
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[\u2190-\u2BFF\u2600-\u27BF\u{1F000}-\u{1FAFF}]/gu, '')
+        .replace(/[^a-z0-9 -]/g, '')
+        .trim().replace(/ +/g, '-');
+
+      // emoji no texto do TOC (não entra no slug)
+      const EMO = { 'instalação': '⚙️', 'uso': '🚀', 'exemplos': '🧪', 'screenshots': '🖼️', 'roadmap': '🗺️', 'contribuindo': '🤝', 'licença': '📄', 'sumário': '🧭', 'readme': '📦', 'introdução': '📝' };
+      const startsWithEmoji = s => /^[\u2190-\u2BFF\u2600-\u27BF\u{1F000}-\u{1FAFF}]/u.test((s || '').trim());
+      function emojifyPlain(title) {
+        if (!useEmoji?.checked || startsWithEmoji(title)) return title;
+        const t = title.trim().toLowerCase();
+        for (const k in EMO) { if (t.includes(k)) return `${EMO[k]} ${title}`; }
+        return title;
+      }
+
+      const items = [];
+      for (const ln of lines) {
+        const m = ln.match(/^(#{1,6})\s+(.+)/);
+        if (!m) continue;
+        const level = m[1].length;
+        const rawTitle = m[2].trim();
+        items.push({ level, title: emojifyPlain(rawTitle), anchor: slug(rawTitle) });
+      }
+
+      if (!items.length) return '';
+      const base = Math.min(...items.map(i => i.level));
+      return items.map(i => '  '.repeat(i.level - base) + `- [${i.title}](#${i.anchor})`).join('\n');
     }
 
     $('#addSection').onclick = () => {
@@ -745,42 +765,7 @@
     mdEl.value = localStorage.getItem('readmeStudioProGH') || `# Nome do Projeto\n\nBreve descrição…\n\n> [!TIP]\n> Use o painel à esquerda para inserir blocos prontos.\n`
     update()
 
-    // === TOC automático (usa o mesmo slug dos headings) ===
-    function buildTOC(md) {
-      const withoutCode = md.replace(/```[^]*?```/g, ''); // ignora blocos de código
-      const lines = withoutCode.split('\n');
 
-      // mesmo slug da seção 3
-      const slug = (t) => (t || '')
-        .toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace(/[\u2190-\u2BFF\u2600-\u27BF\u{1F000}-\u{1FAFF}]/gu, '')
-        .replace(/[^a-z0-9 -]/g, '')
-        .trim().replace(/ +/g, '-');
-
-      // emoji no texto do TOC (não entra no slug)
-      const EMO = { 'instalação': '⚙️', 'uso': '🚀', 'exemplos': '🧪', 'screenshots': '🖼️', 'roadmap': '🗺️', 'contribuindo': '🤝', 'licença': '📄', 'sumário': '🧭', 'readme': '📦', 'introdução': '📝' };
-      const startsWithEmoji = s => /^[\u2190-\u2BFF\u2600-\u27BF\u{1F000}-\u{1FAFF}]/u.test((s || '').trim());
-      function emojifyPlain(title) {
-        if (!useEmoji?.checked || startsWithEmoji(title)) return title;
-        const t = title.trim().toLowerCase();
-        for (const k in EMO) { if (t.includes(k)) return `${EMO[k]} ${title}`; }
-        return title;
-      }
-
-      const items = [];
-      for (const ln of lines) {
-        const m = ln.match(/^(#{1,6})\s+(.+)/);
-        if (!m) continue;
-        const level = m[1].length;
-        const rawTitle = m[2].trim();
-        items.push({ level, title: emojifyPlain(rawTitle), anchor: slug(rawTitle) });
-      }
-
-      if (!items.length) return '';
-      const base = Math.min(...items.map(i => i.level));
-      return items.map(i => '  '.repeat(i.level - base) + `- [${i.title}](#${i.anchor})`).join('\n');
-    }
 
     /* === Ler README direto do GitHub === */
     function parseRepoSpec(spec) {
