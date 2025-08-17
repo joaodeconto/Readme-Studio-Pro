@@ -1,4 +1,3 @@
-import { slug } from '../utils/slug.js';
 import { emojifyTitle } from '../features/emoji.js';
 import { githubSlugify as slug } from '../utils/githubSlug.js';
 
