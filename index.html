@@ -2,8 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>README Studio • One‑File (Pro)</title>
+  <title>README Studio • One‑File (Pro) — Debug Build</title>
   <meta name="description" content="Gerador/Editor de README.md para GitHub — com templates por stack, badges dinâmicos, callouts, colapsáveis, Mermaid, prévia com tema GitHub e syntax highlight, e leitura direta do README via owner/repo ou URL." />
   <style>
     :root{ --bg:#0b0c0f; --panel:#141720; --soft:#1b2030; --text:#eef1f5; --muted:#a9b2c3; --accent:#6ee7ff; --ring:#2a3348; --link:#58a6ff }
@@ -53,19 +52,26 @@
     .tok-s{color:#a5d6ff} /* string */
     .tok-n{color:#ffd479} /* number */
     .tok-f{color:#7ee787} /* function */
+
+    /* Debug */
+    #dbgToggle{display:flex;align-items:center;gap:6px}
+    #dbgPanel{max-height:200px;overflow:auto;font:12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;background:var(--soft);border:1px dashed var(--ring);border-radius:10px;padding:10px;white-space:pre-wrap}
+    .muted{color:var(--muted)}
   </style>
 </head>
 <body>
   <header>
     <div class="wrap">
-      <div class="title">README Studio • One‑File (Pro)</div>
+      <div class="title">README Studio • One‑File (Pro) <span class="muted">(Debug)</span></div>
       <div class="toolbar">
         <button class="btn" id="new">Novo</button>
         <button class="btn" id="open">Abrir .md</button>
         <button class="btn" id="save">Exportar README.md</button>
         
-        <input id="ghInput" type="text" placeholder="owner/repo ou URL do README" style="min-width:320px" />
+        <input id="ghInput" type="text" placeholder="owner/repo · owner/repo@branch · URL do repo · URL RAW do README" style="min-width:420px" />
         <button class="btn" id="fetchGH">Ler do GitHub</button>
+        <label id="dbgToggle" class="btn"><input type="checkbox" id="showDbg"> Debug</label>
+        <label class="btn"><input type="checkbox" id="forceRaw"> Forçar RAW</label>
 
         <div class="split"></div>
         <label class="btn" style="display:flex;gap:8px;align-items:center">Stack
@@ -86,6 +92,7 @@
         <button class="btn" id="copy">Copiar</button>
         <span class="muted" id="stats">0 palavras</span>
       </div>
+      <div id="dbgPanel" hidden></div>
     </div>
   </header>
 
@@ -186,6 +193,17 @@
   <script>
   const $=(q,el=document)=>el.querySelector(q); const $$=(q,el=document)=>[...el.querySelectorAll(q)]
   const mdEl = $('#md'); const prev = $('#preview'); const tabs=$$('.tab');
+  const dbgPanel = $('#dbgPanel'); const showDbg = $('#showDbg'); const forceRaw = $('#forceRaw');
+
+  const LOG=[]; function log(...args){ const line=args.map(x=>{
+      try{ return typeof x==='string'?x:JSON.stringify(x) }catch{ return String(x) }
+    }).join(' ');
+    const ts=new Date().toISOString().slice(11,19);
+    LOG.push(`[${ts}] ${line}`);
+    if(!dbgPanel.hidden){ dbgPanel.textContent = LOG.join('\n'); dbgPanel.scrollTop = dbgPanel.scrollHeight }
+    console.log('[README-STUDIO]',...args);
+  }
+  showDbg?.addEventListener('change',()=>{ dbgPanel.hidden = !showDbg.checked; if(!dbgPanel.hidden){ dbgPanel.textContent = LOG.join('\n') } });
 
   // Tiny Markdown renderer (headings, lists, code fences, inline code, bold/italic, tables, blockquotes, links, images)
   function esc(s){return s.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}
@@ -270,7 +288,7 @@
     const v=$('#section').value; const t={
       'Header com Badges': `# Nome do Projeto\n\n[![build](https://img.shields.io/badge/build-passing-brightgreen)](#) [![license](https://img.shields.io/badge/license-MIT-blue)](#)\n\nBreve descrição do que o projeto faz.\n\n---\n`,
       'Resumo / Pitch': `## Resumo\nExplique o problema, a solução e o impacto em 3–4 linhas.\n`,
-      'Instalação': `## Instalação\n\n\`\`\`bash\n# ex.:\npm i\n# ou\npip install pacote\n\`\`\`\n`,
+      'Instalação': `## Instalação\n\n\`\`\`bash\n# ex.:\nnp m i\n# ou\npip install pacote\n\`\`\`\n`,
       'Uso': `## Uso\n\n\`\`\`bash\ncomando --help\n\`\`\`\n`,
       'Exemplos': `## Exemplos\n- Exemplo 1\n- Exemplo 2\n`,
       'Screenshots': `## Screenshots\n\n![Descrição](imgs/screenshot1.png)\n`,
@@ -310,7 +328,7 @@
 
   // README padrão por stack
   const TPL={
-    node:`# Nome do Projeto (Node.js)\n\n[![node](https://img.shields.io/badge/runtime-Node.js-43853d?logo=node.js&logoColor=white)](#) [![license](https://img.shields.io/badge/license-MIT-blue)](#)\n\n> Pitch curto: o que faz, para quem e por quê.\n\n## Instalação\n\n\`\`\`bash\nnpm i\n# ou\nyarn\n\`\`\`\n\n## Uso\n\n\`\`\`bash\nnpm run start\n\`\`\`\n\n## Configuração\nCrie um arquivo `.env` com as variáveis necessárias.\n\n## Scripts\n- \`build\`: compila\n- \`test\`: roda testes\n\n## Roadmap\n- [ ] Feature 1\n- [ ] Feature 2\n\n## Licença\nMIT © Seu Nome\n`,
+    node:`# Nome do Projeto (Node.js)\n\n[![node](https://img.shields.io/badge/runtime-Node.js-43853d?logo=node.js&logoColor=white)](#) [![license](https://img.shields.io/badge/license-MIT-blue)](#)\n\n> Pitch curto: o que faz, para quem e por quê.\n\n## Instalação\n\n\`\`\`bash\nnpm i\n# ou\nyarn\n\`\`\`\n\n## Uso\n\n\`\`\`bash\nnpm run start\n\`\`\`\n\n## Configuração\nCrie um arquivo \`.env\` com as variáveis necessárias.\n\n## Scripts\n- \`build\`: compila\n- \`test\`: roda testes\n\n## Roadmap\n- [ ] Feature 1\n- [ ] Feature 2\n\n## Licença\nMIT © Seu Nome\n`,
     python:`# Nome do Projeto (Python)\n\n[![python](https://img.shields.io/badge/python-3.11+-3776AB?logo=python&logoColor=white)](#) [![license](https://img.shields.io/badge/license-MIT-blue)](#)\n\n## Instalação\n\n\`\`\`bash\npip install -r requirements.txt\n\`\`\`\n\n## Uso\n\n\`\`\`bash\npython -m pacote --help\n\`\`\`\n\n## Exemplos\n\n\`\`\`py\nfrom pacote import main\nmain()\n\`\`\`\n\n## Licença\nMIT\n`,
     dotnet:`# Nome do Projeto (.NET)\n\n[![dotnet](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white)](#)\n\n## Build\n\n\`\`\`bash\ndotnet build\n\`\`\`\n\n## Execução\n\n\`\`\`bash\ndotnet run --project src/Projeto\n\`\`\`\n\n## Testes\n\n\`\`\`bash\ndotnet test\n\`\`\`\n`,
     android:`# Nome do Projeto (Android/Kotlin)\n\n[![android](https://img.shields.io/badge/Android-Gradle-3DDC84?logo=android&logoColor=white)](#)\n\n## Build\n\nAbra no Android Studio e rode.\n\n## APK\nSaída em \`app/build/outputs/apk\`.\n`,
@@ -319,7 +337,7 @@
     web:`# Nome do Projeto (Web)\n\n[![web](https://img.shields.io/badge/Web-HTML/CSS/JS-ffb703)](#)\n\n## Rodar local\nAbra \`index.html\` no navegador.\n\n## Estrutura\n- \`index.html\`\n- \`styles.css\`\n- \`script.js\`\n`,
     unity:`# Nome do Projeto (Unity)\n\n[![unity](https://img.shields.io/badge/Unity-2022+-000?logo=unity&logoColor=white)](#)\n\n## Abrir\nAbra a pasta do projeto com o Unity Hub.\n\n## Build\nFile → Build Settings → Platform (PC/Quest) → Build.\n`
   }
-  $('#gen').onclick=()=>{ const s=$('#stack').value; if(!s){ alert('Escolha uma stack'); return } mdEl.value = TPL[s] || mdEl.value; update() }
+  $('#gen').onclick=()=>{ const s=$('#stack').value; log('Gen template stack=',s); if(!s){ alert('Escolha uma stack'); return } if(!TPL[s]){ alert('Template não encontrado para '+s); return } mdEl.value = TPL[s]; update() }
 
   // Stats + autosave
   mdEl.addEventListener('input', update)
@@ -362,40 +380,125 @@
       const bin = atob(b64.replace(/\s/g,''));
       const bytes = new Uint8Array([...bin].map(ch=>ch.charCodeAt(0)));
       return new TextDecoder('utf-8').decode(bytes);
-    }catch(e){ return '' }
+    }catch(e){ log('b64 decode error', e); return '' }
+  }
+
+  async function fetchJSON(url){
+    const r = await fetch(url, { headers: { 'Accept':'application/vnd.github.v3+json', 'X-GitHub-Api-Version':'2022-11-28' }, cache:'no-store', mode:'cors' });
+    const text = await r.text();
+    let data=null; try{ data = JSON.parse(text) }catch{ /* keep text */ }
+    log('HTTP', r.status, url, data?.message||text.slice(0,140));
+    return { ok:r.ok, status:r.status, headers:r.headers, data, text };
+  }
+
+  async function tryRaw(owner, repo, branchHints=['main','master'], pathsHints=['README.md','Readme.md','readme.md']){
+    for(const b of branchHints){
+      for(const p of pathsHints){
+        const ru = `https://raw.githubusercontent.com/${owner}/${repo}/${b}/${p}?ts=${Date.now()}`;
+        log('try RAW', ru);
+        const rr = await fetch(ru, {cache:'no-store', mode:'cors'});
+        if(rr.ok){ return await rr.text(); }
+      }
+    }
+    throw new Error('RAW fallback falhou');
+  }
+
+  async function discoverDefaultBranch(owner, repo){
+    const {ok,data} = await fetchJSON(`https://api.github.com/repos/${owner}/${repo}`);
+    if(!ok){ throw new Error('Falha ao obter repo'); }
+    return data.default_branch || 'main';
+  }
+
+  function apiLikelyBlocked(){
+    // Em Pages deve ser OK; em file:// quase sempre bloqueia
+    const blocked = location.protocol==='file:' || !/^https?:$/.test(location.protocol);
+    return blocked;
   }
 
   async function fetchReadme(spec){
     if(!spec) throw new Error('Especificação inválida');
+
     // Direct raw URL
     if(spec.rawUrl){
-      const r = await fetch(spec.rawUrl, {cache:'no-store'});
+      const r = await fetch(spec.rawUrl, {cache:'no-store', mode:'cors'});
       if(!r.ok) throw new Error('Falha ao baixar RAW: '+r.status);
       return await r.text();
     }
+
     const {owner, repo, branch, path} = spec;
-    if(owner && repo && !path){
-      // API readme — usa default_branch se não passar ref
-      const url = `https://api.github.com/repos/${owner}/${repo}/readme${branch?`?ref=${encodeURIComponent(branch)}`:''}`;
-      const r = await fetch(url, { headers: { 'Accept':'application/vnd.github.v3+json' }, cache:'no-store' });
-      if(!r.ok){ throw new Error('GitHub API: '+r.status); }
-      const j = await r.json();
-      if(j && j.content){ return b64ToText(j.content) }
-      // fallback para raw padrão
-      const def = branch || 'main';
-      for(const b of [def,'master']){
-        const ru = `https://raw.githubusercontent.com/${owner}/${repo}/${b}/README.md`;
-        const rr = await fetch(ru, {cache:'no-store'}); if(rr.ok) return await rr.text();
+
+    if(forceRaw?.checked){
+      log('Forçar RAW ativo');
+      if(owner && repo && !path){
+      // 1) RAW-first (evita rate limit/CORS e funciona no Pages)
+      try{
+        return await tryRaw(owner, repo, ['main','master','dev','stable'], ['README.md','Readme.md','readme.md','README']);
+      }catch(e){
+        log('RAW-first falhou, tentando API /readme', e.message);
       }
-      throw new Error('README não encontrado');
+      // 2) API /readme (fallback)
+      const url = `https://api.github.com/repos/${owner}/${repo}/readme${branch?`?ref=${encodeURIComponent(branch)}`:''}`;
+      const {ok,status,data,headers} = await fetchJSON(url);
+      if(!ok){
+        const rem = headers?.get?.('x-ratelimit-remaining');
+        log('API /readme falhou', status, data?.message, 'rateRemaining=', rem);
+        throw new Error('Não foi possível obter README pelo API');
+      }
+      if(data && data.content){ return b64ToText(data.content) }
+      throw new Error('API não retornou conteúdo do README');
     }
+      if(owner && repo && path){
+      // 1) RAW-first direto para o caminho informado
+      try{
+        return await tryRaw(owner, repo, branch? [branch] : ['main','master','dev','stable'], [path]);
+      }catch(e){
+        log('RAW direto falhou, tentando API contents', e.message);
+      }
+      // 2) API contents como fallback
+      const ref = branch || 'main';
+      const {ok,data} = await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(ref)}`);
+      if(ok && data && data.content){ return b64ToText(data.content) }
+      throw new Error('Arquivo não encontrado no repositório');
+    }
+    }
+
+    const shouldAvoidAPI = apiLikelyBlocked();
+    log('apiLikelyBlocked=', shouldAvoidAPI, 'host=', location.host);
+
+    if(owner && repo && !path){
+      if(shouldAvoidAPI){
+        const def = branch || await discoverDefaultBranch(owner, repo).catch(()=> 'main');
+        return tryRaw(owner, repo, [def,'main','master']);
+      }
+      const url = `https://api.github.com/repos/${owner}/${repo}/readme${branch?`?ref=${encodeURIComponent(branch)}`:''}`;
+      const {ok,status,data,text} = await fetchJSON(url);
+      if(!ok){
+        log('API readme falhou', status, data?.message);
+        // Fallback: tentar RAW
+        const def = branch || await discoverDefaultBranch(owner, repo).catch(()=> 'main');
+        return tryRaw(owner, repo, [def,'main','master']);
+      }
+      if(data && data.content){ return b64ToText(data.content) }
+      // Fallback para RAW padrão
+      const def = branch || 'main';
+      return tryRaw(owner, repo, [def,'main','master']);
+    }
+
     if(owner && repo && path){
       const branches = branch? [branch] : ['main','master'];
-      for(const bb of branches){
-        const ru = `https://raw.githubusercontent.com/${owner}/${repo}/${bb}/${path}`;
-        const rr = await fetch(ru, {cache:'no-store'}); if(rr.ok) return await rr.text();
+      if(shouldAvoidAPI){
+        return tryRaw(owner, repo, branches, [path]);
       }
-      throw new Error('Arquivo não encontrado no repositório');
+      // Tentar RAW direto primeiro (mais simples)
+      try{
+        return await tryRaw(owner, repo, branches, [path]);
+      }catch(e){
+        log('RAW direto falhou, tentando API contents', e.message);
+        const ref = branches[0];
+        const {ok,data} = await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(ref)}`);
+        if(ok && data && data.content){ return b64ToText(data.content) }
+        throw new Error('Arquivo não encontrado no repositório');
+      }
     }
     throw new Error('Entrada não reconhecida');
   }
@@ -409,10 +512,14 @@
       const old = fetchBtn.textContent; fetchBtn.textContent = 'Lendo…'; fetchBtn.disabled = true;
       try{
         const spec = parseRepoSpec(specStr);
+        log('parse spec', specStr, spec);
         const txt = await fetchReadme(spec);
+        if(!txt || !txt.trim()) throw new Error('README vazio ou não encontrado');
         mdEl.value = txt; update();
+        log('README carregado. tamanho=', txt.length);
       }catch(err){
-        console.error(err); alert('Não consegui ler o README: '+(err?.message||err));
+        console.error(err); log('Erro', err?.message||String(err));
+        alert('Não consegui ler o README: '+(err?.message||err));
       }finally{ fetchBtn.textContent = old; fetchBtn.disabled = false }
     })
   }
@@ -424,6 +531,15 @@
   //  • https://github.com/owner/repo (usa README na default_branch)
   //  • https://github.com/owner/repo/blob/branch/path/README.md
   //  • https://raw.githubusercontent.com/owner/repo/branch/path/README.md
+
+  // Info de ambiente
+  log('Env', { protocol: location.protocol, host: location.host, href: location.href });
+  if(location.protocol==='http:'){
+    log('Aviso: HTTP sem TLS — algumas APIs podem bloquear. Prefira HTTPS.');
+  }
+  if(location.hostname.endsWith('.github.io')){
+    log('Rodando em GitHub Pages — CORS deve permitir chamadas à API GitHub.');
+  }
   </script>
 </body>
 </html>
