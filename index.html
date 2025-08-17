@@ -718,6 +718,7 @@
     // Toolbar transforms
     const listBtn = document.getElementById('toList');
     const codeBtn = document.getElementById('toCode');
+    const tocBtn =  document.getElementById('tocBtn');
     tocBtn?.addEventListener('click', () => { const toc = buildTOC(mdEl.value); if (!toc) { alert('Nenhum heading encontrado'); return } ins('\n## Sumário\n' + toc + '\n') });
     listBtn?.addEventListener('click', toList);
     codeBtn?.addEventListener('click', toCode);
