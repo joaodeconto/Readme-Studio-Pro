@@ -43,11 +43,19 @@ export function bindUI() {
   // Operações de arquivo
   $('#new').onclick = () => { if (confirm('Limpar conteúdo?')) { mdEl.value=''; update(); } };
   $('#save').onclick = () => {
+    const bake = $('#bakeEmoji')?.checked;
     const a=document.createElement('a');
-    a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(mdEl.value);
-    a.download='README.md'; a.click();
+    const out = bake ? applyEmojis(mdEl.value, true) : mdEl.value;
+    a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(out);
+    a.download='README.md'; 
+    a.click();
   };
-  $('#copy').onclick = () => navigator.clipboard.writeText(mdEl.value);
+  $('#copy').onclick = () => {
+    const bake = $('#bakeEmoji')?.checked;
+    const out = bake ? applyEmojis(mdEl.value, true) : mdEl.value;
+    navigator.clipboard.writeText(out);
+  };
+
   $('#open').onclick = () => {
     const inp=document.createElement('input'); inp.type='file'; inp.accept='.md,text/markdown,text/plain';
     inp.onchange = () => {

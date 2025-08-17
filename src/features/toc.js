@@ -1,5 +1,6 @@
 import { slug } from '../utils/slug.js';
 import { emojifyTitle } from '../features/emoji.js';
+import { githubSlugify as slug } from '../utils/githubSlug.js';
 
 // Gera TOC; quando useEmoji=true, força ícone em todo item.
 export function buildTOC(md, { useEmoji=false } = {}) {
@@ -13,9 +14,10 @@ export function buildTOC(md, { useEmoji=false } = {}) {
     const level = m[1].length;
     const rawTitle = m[2].trim();
     const show = useEmoji ? emojifyTitle(rawTitle, level, true) : rawTitle;
-    items.push({ level, title: show, anchor: slug(rawTitle) });
+    items.push({ level, title: titleShown, anchor: slug(rawTitle) }); // slug SEM emoji
   }
   if (!items.length) return '';
   const base = Math.min(...items.map(i => i.level));
-  return items.map(i => '  '.repeat(i.level - base) + `- [${i.title}](#${i.anchor})`).join('\n');
+  // Garantir formatação pura de lista (sem tab, sem espaços extras no fim)
+  return items.map(i => `${'  '.repeat(i.level - base)}- [${i.title}](#${i.anchor})`).join('\n');
 }
