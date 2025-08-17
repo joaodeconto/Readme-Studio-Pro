@@ -17,6 +17,7 @@ export function bindUI() {
   const stats = $('#stats');
   const useEmoji = $('#useEmoji');
   const bakeEmoji = $('#bakeEmoji');
+  const fetchBtn = $('#fetchGH');
 
   function countStats(s) {
     const noCode = s.replace(/```[\s\S]*?```/g, '');
@@ -133,6 +134,19 @@ export function bindUI() {
     if (block) { replaceSelection(mdEl, '\n' + block + '\n'); update(); }
   };
 
+  // Gera template por stack
+  $('#gen').onclick = () => {
+    const s = $('#stack').value;
+    log('Gen template stack=', s);
+    if (!s) return alert('Escolha uma stack');
+    if (!TPL[s]) return alert('Template não encontrado para ' + s);
+    let md = TPL[s];
+    if (useEmoji?.checked) {
+      md = applyEmojis(md, true);
+    }
+    mdEl.value = md; update();
+  };
+
   $('#tocAuto').addEventListener('click', () => {
     const toc = buildTOC(mdEl.value, { useEmoji: useEmoji?.checked });
     if (!toc) return alert('Nenhum heading encontrado');
@@ -140,7 +154,7 @@ export function bindUI() {
     update();
   });
 
-  const fetchBtn = $('#fetchGH');
+  // Lê README do GitHub ou caminho RAW
   fetchBtn?.addEventListener('click', async () => {
     const specStr = ($('#ghInput').value || '').trim();
     if (!specStr) return alert('Cole owner/repo, URL do repositório ou RAW do README');
@@ -148,7 +162,7 @@ export function bindUI() {
     try {
       const spec = parseRepoSpec(specStr);
       log('parse spec', specStr, spec);
-      const txt = await fetchReadme(spec, { forceRaw: false });
+      const txt = await fetchReadme(spec, { forceRaw: !!$('#forceRaw')?.checked });
       if (!txt?.trim()) throw new Error('README vazio ou não encontrado');
       mdEl.value = txt; update();
       log('README carregado. tamanho=', txt.length);
