@@ -1,19 +1,25 @@
 import { slug } from '../utils/slug.js';
+import { emojifyTitle } from '../features/emoji.js';
 
 function linkify(s) {
   return s.replace(/\bhttps?:\/\/[^\s)]+/g, url => `<a href="${url}" target="_blank" rel="noopener">${url}</a>`);
 }
 
-// Converte markdown simplificado em HTML. Foca em headings, listas, tabelas, blockquotes e links.
-export function mdToHtml(src) {
-  // Headings com id consistente
+// md -> HTML. Novo: { emojify } para mostrar ícones em headings na prévia.
+export function mdToHtml(src, { emojify=false } = {}) {
+  const wrapHeading = (level, t) => {
+    const text = emojify ? emojifyTitle(t, level, true) : t;   // força ter ícone na prévia
+    const id = slug(t);                                        // slug SEM emoji (compatível com GitHub)
+    return `<h${level} id="${id}">${text}</h${level}>`;
+  };
+
   src = src
-    .replace(/^######\s?(.+)$/gm, (m,t)=>`<h6 id="${slug(t)}">${t}</h6>`)
-    .replace(/^#####\s?(.+)$/gm, (m,t)=>`<h5 id="${slug(t)}">${t}</h5>`)
-    .replace(/^####\s?(.+)$/gm, (m,t)=>`<h4 id="${slug(t)}">${t}</h4>`)
-    .replace(/^###\s?(.+)$/gm,  (m,t)=>`<h3 id="${slug(t)}">${t}</h3>`)
-    .replace(/^##\s?(.+)$/gm,   (m,t)=>`<h2 id="${slug(t)}">${t}</h2>`)
-    .replace(/^#\s?(.+)$/gm,    (m,t)=>`<h1 id="${slug(t)}">${t}</h1>`);
+    .replace(/^######\s?(.+)$/gm, (m,t)=>wrapHeading(6,t))
+    .replace(/^#####\s?(.+)$/gm, (m,t)=>wrapHeading(5,t))
+    .replace(/^####\s?(.+)$/gm, (m,t)=>wrapHeading(4,t))
+    .replace(/^###\s?(.+)$/gm,  (m,t)=>wrapHeading(3,t))
+    .replace(/^##\s?(.+)$/gm,   (m,t)=>wrapHeading(2,t))
+    .replace(/^#\s?(.+)$/gm,    (m,t)=>wrapHeading(1,t));
 
   // callouts + blockquotes
   src = src

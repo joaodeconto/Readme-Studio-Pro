@@ -29,7 +29,7 @@ export function bindUI() {
     stats.textContent = countStats(mdEl.value);
     store.text = mdEl.value;
     if (!mdEl.hidden) return;
-    prev.innerHTML = mdToHtml(mdEl.value);
+    prev.innerHTML = mdToHtml(mdEl.value, { emojify: useEmoji?.checked });
     highlightAll(prev);
   }
 
