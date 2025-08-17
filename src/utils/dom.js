@@ -1,0 +1,3 @@
+// Utilitários DOM para consultas simples
+export const $ = (q, el = document) => el.querySelector(q);
+export const $$ = (q, el = document) => [...el.querySelectorAll(q)];
