@@ -38,13 +38,20 @@
           </select>
         </label>
         <button class="btn" id="gen">Gerar README padrão</button>
-        <button class="btn" id="tocAuto">TOC automático</button>
-        <button class="btn" id="toList">→ Lista</button>
-        <button class="btn" id="toCode">→ Código</button>
 
         <div class="split"></div>
-        <button class="btn" id="undo">Undo</button>
-        <button class="btn" id="redo">Redo</button>
+        <div class="btn-group">
+          <button class="btn" id="bold" title="Negrito (Ctrl+B)"><b>B</b></button>
+          <button class="btn" id="heading" title="Heading (Ctrl+H)">H1</button>
+          <button class="btn" id="toList" title="Lista (Ctrl+L)">•</button>
+          <button class="btn" id="toCode" title="Código (Ctrl+Shift+C)">&lt;/&gt;</button>
+          <button class="btn" id="tocAuto" title="Sumário (Ctrl+T)">☰</button>
+          <button class="btn" id="undo" title="Undo (Ctrl+Z)">↶</button>
+          <button class="btn" id="redo" title="Redo (Ctrl+Y)">↷</button>
+          <button class="btn" id="toggleAdv" title="Ferramentas avançadas (Ctrl+M)">⚙️</button>
+        </div>
+
+        <div class="split"></div>
         <button class="btn" id="lint">Lint README</button>
         <button class="btn" id="copy">Copiar</button>
         <span class="muted" id="stats">0 palavras</span>
@@ -55,7 +62,7 @@
 
   <main class="wrap">
     <div class="grid">
-      <div class="panel">
+      <div class="panel" id="advPanel" hidden>
         <h3 style="margin:0 0 8px">Inserir bloco</h3>
         <div class="fieldset">
           <div class="row">
