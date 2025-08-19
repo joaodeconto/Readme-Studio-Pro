@@ -160,21 +160,7 @@
 
     <section class="panel">
       <h3>Conectar repositório</h3>
-      <label>Instalação
-        <select id="sel-installation"></select>
-      </label>
-
-      <label>Repositório
-        <select id="sel-repo"></select>
-      </label>
-      <div class="grid">
-        <label>installation_id <input id="installation_id" placeholder="123456" /></label>
-        <label>owner <input id="owner" placeholder="org-ou-usuario" /></label>
-        <label>repo <input id="repo" placeholder="nome-do-repo" /></label>
-        <label>ref <input id="ref" value="main" /></label>
-        <label>readme_path <input id="readme_path" value="README.md" /></label>
-        <label>message <input id="message" value="docs: atualiza README (TOC)" /></label>
-      </div>
+      <button class="btn" id="btn-connect">Selecionar repositório…</button>
       <div class="actions">
         <button class="btn" id="btn-analisar">Analisar</button>
         <button class="btn" id="btn-pr">Criar PR</button>

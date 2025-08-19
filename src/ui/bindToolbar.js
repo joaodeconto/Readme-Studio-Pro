@@ -8,6 +8,7 @@ import { toList, toCode, replaceSelection } from '../features/insert.js';
 import { fetchReadme, parseRepoSpec } from '../github/fetch.js';
 import { TPL } from '../features/templates.js';
 import { attachHistory } from '../state/history.js';
+import { openWizard } from './wizard.js';
 import { lintMarkdown } from '../utils/lint.js';
 import { discoverInstallations, discoverRepos, discoverReadme, analisarRepo, proporPR } from '../github/fetch.js';
 import { state, setInput, setAnalysis, setPR } from '../state/store.js';
@@ -18,42 +19,6 @@ function toast(msg, type = 'info') {
   const el = $('#toast'); if (!el) return;
   el.textContent = msg; el.className = `toast ${type}`;
   setTimeout(() => el.className = 'toast', 3000);
-}
-
-export async function bindWizard() {
-  // 1) listar instalações
-  const inst = await discoverInstallations();
-  const selInst = document.querySelector('#sel-installation');
-  selInst.innerHTML = inst.items.map(i =>
-    `<option value="${i.installation_id}">${i.account_login} (${i.target_type})</option>`
-  ).join('');
-  selInst.addEventListener('change', async (e) => {
-    const installation_id = e.target.value;
-    state.inputs.installation_id = installation_id;
-
-    // 2) listar repos da instalação
-    const repos = await discoverRepos(installation_id);
-    const selRepo = document.querySelector('#sel-repo');
-    selRepo.innerHTML = repos.items
-      .map(r => `<option value="${r.owner}/${r.repo}">${r.full_name}</option>`)
-      .join('');
-
-    // escolheu repo → 3) descobrir branch e README
-    selRepo.addEventListener('change', async ev => {
-      const [owner, repo] = ev.target.value.split('/');
-      const info = await discoverReadme(installation_id, owner, repo);
-      state.inputs.owner = owner;
-      state.inputs.repo = repo;
-      state.inputs.ref = info.ref || 'main';
-      state.inputs.readme_path = info.readme_path || 'README.md';
-
-      // opcional: preencher campos visíveis
-      document.querySelector('#owner').value = owner;
-      document.querySelector('#repo').value = repo;
-      document.querySelector('#ref').value = state.inputs.ref;
-      document.querySelector('#readme_path').value = state.inputs.readme_path;
-    }, { once: true });
-  });
 }
 
 
@@ -105,12 +70,19 @@ export function bindUI() {
     mdEl.hidden = !edit; prev.hidden = edit;
     if (!edit) update();
   }));
-
-  // inputs
-  ['installation_id', 'owner', 'repo', 'ref', 'readme_path', 'message'].forEach(id => {
-    const el = $(`#${id}`);
-    if (!el) return;
-    el.addEventListener('input', e => setInput(id, e.target.value));
+  $("#btn-connect")?.addEventListener("click", async () => {
+    try {
+      const res = await openWizard();
+      if (!res) return;
+      const { installation_id, owner, repo, ref, readme_path, readme } = res;
+      Object.assign(state.inputs, { installation_id, owner, repo, ref, readme_path });
+      mdEl.value = readme;
+      update();
+      toast("README carregado ✅", "ok");
+    } catch (err) {
+      console.error(err);
+      toast("Falha ao carregar README", "warn");
+    }
   });
 
   // analisar
@@ -118,7 +90,7 @@ export function bindUI() {
     try {
       const { installation_id, owner, repo, ref, readme_path } = state.inputs;
       if (!installation_id || !owner || !repo) {
-        toast('Preencha installation_id, owner e repo.', 'warn');
+        toast('Selecione um repositório primeiro.', 'warn');
         return;
       }
       $('#btn-analisar').disabled = true;
