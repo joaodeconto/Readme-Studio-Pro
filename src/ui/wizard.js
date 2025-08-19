@@ -1,6 +1,8 @@
 import { discoverInstallations, discoverRepos, discoverReadme, fetchReadme } from '../github/fetch.js';
+import { startAuthFlow } from '../github/auth.js';
 
 export async function openWizard() {
+  await startAuthFlow();
   return new Promise(resolve => {
     const modal = document.createElement('div');
     modal.className = 'modal';
