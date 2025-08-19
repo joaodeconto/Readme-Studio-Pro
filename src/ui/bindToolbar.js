@@ -9,8 +9,10 @@ import { fetchReadme, parseRepoSpec } from '../github/fetch.js';
 import { TPL } from '../features/templates.js';
 import { attachHistory } from '../state/history.js';
 import { openWizard } from './wizard.js';
-import { analisarRepo, proporPR } from '../github/fetch.js';
-import { state, setAnalysis, setPR } from '../state/store.js';
+import { lintMarkdown } from '../utils/lint.js';
+import { discoverInstallations, discoverRepos, discoverReadme, analisarRepo, proporPR } from '../github/fetch.js';
+import { state, setInput, setAnalysis, setPR } from '../state/store.js';
+import { startAuthFlow } from '../github/auth.js';
 
 
 function toast(msg, type = 'info') {
@@ -28,6 +30,21 @@ export function bindUI() {
   const useEmoji = $('#useEmoji');
   const bakeEmoji = $('#bakeEmoji');
   const fetchBtn = $('#fetchGH');
+  const landing = $('#landing');
+  const app = $('#app');
+  const btnImport = $('#landing-import');
+  const btnCreate = $('#landing-create');
+  const btnOpen = $('#landing-open');
+  const defaultMd = `# Nome do Projeto\n\nBreve descrição…\n\n> [!TIP]\n> Use o painel à esquerda para inserir blocos prontos.\n`;
+
+  function showLanding() { landing.hidden = false; app.hidden = true; }
+  function hideLanding() { landing.hidden = true; app.hidden = false; }
+
+  if (!mdEl.value.trim()) {
+    showLanding();
+  } else {
+    hideLanding();
+  }
 
   function countStats(s) {
     const noCode = s.replace(/```[\s\S]*?```/g, '');
@@ -151,7 +168,7 @@ export function bindUI() {
     const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.md,text/markdown,text/plain';
     inp.onchange = () => {
       const f = inp.files[0]; if (!f) return;
-      const r = new FileReader(); r.onload = () => { mdEl.value = r.result; update(); };
+      const r = new FileReader(); r.onload = () => { mdEl.value = r.result; update(); hideLanding(); };
       r.readAsText(f);
     };
     inp.click();
@@ -252,7 +269,7 @@ export function bindUI() {
       log('parse spec', specStr, spec);
       const txt = await fetchReadme(spec, { forceRaw: !!$('#forceRaw')?.checked });
       if (!txt?.trim()) throw new Error('README vazio ou não encontrado');
-      mdEl.value = txt; update();
+      mdEl.value = txt; update(); hideLanding();
       log('README carregado. tamanho=', txt.length);
     } catch (err) {
       console.error(err); log('Erro', err?.message || String(err));
@@ -283,12 +300,31 @@ export function bindUI() {
     renderLint(res);
   };
 
-  mdEl.value = `# Nome do Projeto
+  btnCreate?.addEventListener('click', () => {
+    hideLanding();
+    mdEl.value = defaultMd;
+    update();
+  });
 
-Breve descrição…
+  btnOpen?.addEventListener('click', () => {
+    hideLanding();
+    $('#open').click();
+  });
 
-> [!TIP]
-> Use o painel à esquerda para inserir blocos prontos.
-`;
+  btnImport?.addEventListener('click', async () => {
+    await startAuthFlow();
+    const specStr = prompt('owner/repo · owner/repo@branch · URL do repo · URL RAW do README');
+    if (!specStr) return;
+    try {
+      const spec = parseRepoSpec(specStr);
+      const txt = await fetchReadme(spec, { forceRaw: !!$('#forceRaw')?.checked });
+      if (!txt?.trim()) throw new Error('README vazio ou não encontrado');
+      mdEl.value = txt; update();
+      hideLanding();
+    } catch (err) {
+      console.error(err); alert('Não consegui ler o README: ' + (err?.message || err));
+    }
+  });
+
   update();
 }
