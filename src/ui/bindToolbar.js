@@ -4,7 +4,7 @@ import { mdToHtml } from '../render/markdown.js';
 import { highlightAll } from '../render/highlight.js';
 import { applyEmojis } from '../features/emoji.js';
 import { buildTOC } from '../features/toc.js';
-import { toList, toCode, replaceSelection } from '../features/insert.js';
+import { toList, toCode, replaceSelection, getSelectionRanges } from '../features/insert.js';
 import { fetchReadme, parseRepoSpec } from '../github/fetch.js';
 import { TPL } from '../features/templates.js';
 import { attachHistory } from '../state/history.js';
@@ -151,6 +151,30 @@ export function bindUI() {
   $('#undo').onclick = () => history.undo();
   $('#redo').onclick = () => history.redo();
 
+  $('#toggleAdv').onclick = () => {
+    const p = $('#advPanel');
+    if (p) p.hidden = !p.hidden;
+  };
+  $('#bold').onclick = () => {
+    const sel = getSelectionRanges(mdEl);
+    const txt = sel.text || 'texto';
+    replaceSelection(mdEl, `**${txt}**`);
+    update();
+  };
+  $('#heading').onclick = () => {
+    const sel = getSelectionRanges(mdEl);
+    let text = sel.text;
+    if (!text) {
+      const v = mdEl.value;
+      let s = v.lastIndexOf('\n', sel.start - 1) + 1; if (s < 0) s = 0;
+      let e = v.indexOf('\n', sel.start); if (e < 0) e = v.length;
+      text = v.slice(s, e); mdEl.selectionStart = s; mdEl.selectionEnd = e;
+    }
+    const lines = text.split(/\r?\n/).map(l => l ? '# ' + l.replace(/^#+\s*/, '') : l);
+    replaceSelection(mdEl, lines.join('\n'));
+    update();
+  };
+
   $('#new').onclick = () => { if (confirm('Limpar conteúdo?')) { mdEl.value = ''; update(); } };
   $('#save').onclick = () => {
     const bake = bakeEmoji?.checked;
@@ -255,6 +279,16 @@ export function bindUI() {
     if (!toc) return alert('Nenhum heading encontrado');
     replaceSelection(mdEl, `\n## Sumário\n${toc}\n`);
     update();
+  });
+
+  mdEl.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if (e.ctrlKey && !e.shiftKey && k === 'b') { e.preventDefault(); $('#bold').click(); }
+    else if (e.ctrlKey && !e.shiftKey && k === 'h') { e.preventDefault(); $('#heading').click(); }
+    else if (e.ctrlKey && !e.shiftKey && k === 'l') { e.preventDefault(); $('#toList').click(); }
+    else if (e.ctrlKey && e.shiftKey && k === 'c') { e.preventDefault(); $('#toCode').click(); }
+    else if (e.ctrlKey && !e.shiftKey && k === 't') { e.preventDefault(); $('#tocAuto').click(); }
+    else if (e.ctrlKey && !e.shiftKey && k === 'm') { e.preventDefault(); $('#toggleAdv').click(); }
   });
 
 
