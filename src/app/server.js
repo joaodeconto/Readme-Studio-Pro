@@ -33,7 +33,7 @@ const fastify = Fastify({ logger: false });
 
 await fastify.register(cors, {
   origin: [
-    'https://smee.io/fJBORalVygC60YcZ',                                // dev local (se servir estático)
+    'http://localhost:3000',                                // dev local (se servir estático)
     'https://joaodeconto.github.io'                         // seu GitHub Pages (raiz do user)
   ],
   methods: ['GET','POST','OPTIONS'],
