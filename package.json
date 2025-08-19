@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node ./src/app/server.js"
+    "dev": "node ./src/app/server.js",
+    "test": "node --test"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0", 
