@@ -33,9 +33,11 @@ export async function openWizard() {
         box.querySelector('#next1').onclick = () => {
           installation_id = sel.value;
           step2();
-        };
-      } catch (e) {
-        showError('Não foi possível carregar instalações', step1);
+        };        
+      } catch(e) {
+        alert(e.message === 'NETWORK_FAILURE' ? 'Falha de rede ao listar instalações.' : 'Erro: ' + e.message);
+        modal.remove(); resolve(null);
+         showError('Não foi possível carregar instalações', step1);
       }
     }
 
@@ -63,44 +65,42 @@ export async function openWizard() {
           [owner, repo] = li.dataset.full.split('/');
           step3();
         };
-      } catch (e) {
+      } catch(e) {
+        alert(e.message === 'NETWORK_FAILURE' ? 'Falha de rede ao listar repositórios.' : 'Erro: ' + e.message);
+        modal.remove(); resolve(null);        
         showError('Não foi possível carregar repositórios', step2);
       }
     }
 
     async function step3() {
+      let info;
       try {
-        const info = await discoverReadme(installation_id, owner, repo);
-        ref = info.ref || 'main';
-        readme_path = info.readme_path || 'README.md';
-        box.innerHTML = `
-          <div class="progress">3/3</div>
-          <h3>Ajustes</h3>
-          <label>branch <input id="wiz-ref" type="text" value="${ref}" /></label>
-          <label>README <input id="wiz-path" type="text" value="${readme_path}" /></label>
-          <div class="actions"><button class="btn" id="finish">Concluir</button></div>`;
-
-        box.querySelector('#finish').onclick = () => {
-          ref = box.querySelector('#wiz-ref').value.trim() || ref;
-          readme_path = box.querySelector('#wiz-path').value.trim() || readme_path;
-
-          async function attempt() {
-            try {
-              const readme = await fetchReadme({ owner, repo, branch: ref, path: readme_path });
-              modal.remove();
-              resolve({ installation_id, owner, repo, ref, readme_path, readme });
-            } catch (e) {
-              showError('Não foi possível carregar README', attempt);
-            }
-          }
-
-          attempt();
-        };
-      } catch (e) {
-        showError('Não foi possível carregar informações do README', step3);
+        info = await discoverReadme(installation_id, owner, repo);
+      } catch(e) {
+        alert(e.message === 'NETWORK_FAILURE' ? 'Falha de rede ao obter README.' : 'Erro: ' + e.message);
+        modal.remove(); resolve(null); return;
       }
+      ref = info.ref || 'main';
+      readme_path = info.readme_path || 'README.md';
+      box.innerHTML = `
+        <div class="progress">3/3</div>
+        <h3>Ajustes</h3>
+        <label>branch <input id="wiz-ref" type="text" value="${ref}" /></label>
+        <label>README <input id="wiz-path" type="text" value="${readme_path}" /></label>
+        <div class="actions"><button class="btn" id="finish">Concluir</button></div>`;
+      box.querySelector('#finish').onclick = async () => {
+        ref = box.querySelector('#wiz-ref').value.trim() || ref;
+        readme_path = box.querySelector('#wiz-path').value.trim() || readme_path;
+        try {
+          const readme = await fetchReadme({ owner, repo, branch: ref, path: readme_path });
+          modal.remove();
+          resolve({ installation_id, owner, repo, ref, readme_path, readme });
+        } catch(err) {
+          alert(err.message === 'NETWORK_FAILURE' ? 'Falha de rede ao baixar README.' : 'Erro: ' + err.message);
+          showError('Não foi possível carregar README', attempt);
+        }
+      };
     }
-
     step1();
   });
 }

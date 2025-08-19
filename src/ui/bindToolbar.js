@@ -81,7 +81,8 @@ export function bindUI() {
       toast("README carregado ✅", "ok");
     } catch (err) {
       console.error(err);
-      toast("Falha ao carregar README", "warn");
+      const msg = err?.message === 'NETWORK_FAILURE' ? 'Falha de rede ao carregar README' : 'Falha ao carregar README';
+      toast(msg, "warn");
     }
   });
 
@@ -111,7 +112,8 @@ export function bindUI() {
       toast('Análise concluída ✅', 'ok');
     } catch (e) {
       console.error(e);
-      toast('Falha na análise: ' + e.message, 'err');
+      if (e.message === 'NETWORK_FAILURE') toast('Falha de rede durante a análise', 'err');
+      else toast('Falha na análise: ' + e.message, 'err');
     } finally {
       $('#btn-analisar').disabled = false;
     }
@@ -140,7 +142,8 @@ export function bindUI() {
       toast('PR criado como draft 🚀', 'ok');
     } catch (e) {
       console.error(e);
-      toast('Falha ao criar PR: ' + e.message, 'err');
+      if (e.message === 'NETWORK_FAILURE') toast('Falha de rede ao criar PR', 'err');
+      else toast('Falha ao criar PR: ' + e.message, 'err');
     } finally {
       $('#btn-pr').disabled = false;
     }
@@ -311,7 +314,8 @@ export function bindUI() {
       log('README carregado. tamanho=', txt.length);
     } catch (err) {
       console.error(err); log('Erro', err?.message || String(err));
-      alert('Não consegui ler o README: ' + (err?.message || err));
+      const msg = err?.message === 'NETWORK_FAILURE' ? 'Falha de rede ao ler o README.' : 'Não consegui ler o README: ' + (err?.message || err);
+      alert(msg);
     } finally {
       fetchBtn.textContent = old; fetchBtn.disabled = false;
     }
@@ -360,7 +364,9 @@ export function bindUI() {
       mdEl.value = txt; update();
       hideLanding();
     } catch (err) {
-      console.error(err); alert('Não consegui ler o README: ' + (err?.message || err));
+      console.error(err);
+      const msg = err?.message === 'NETWORK_FAILURE' ? 'Falha de rede ao ler o README.' : 'Não consegui ler o README: ' + (err?.message || err);
+      alert(msg);
     }
   });
 
