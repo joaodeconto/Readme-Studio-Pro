@@ -15,6 +15,11 @@ export async function openWizard() {
     let ref = 'main';
     let readme_path = 'README.md';
 
+    function showError(msg, retryFn) {
+      box.innerHTML = `<p>${msg}</p><div class="actions"><button class="btn" id="retry">Tentar novamente</button></div>`;
+      box.querySelector('#retry').onclick = retryFn;
+    }
+
     async function step1() {
       box.innerHTML = `
         <div class="progress">1/3</div>
@@ -28,10 +33,11 @@ export async function openWizard() {
         box.querySelector('#next1').onclick = () => {
           installation_id = sel.value;
           step2();
-        };
+        };        
       } catch(e) {
         alert(e.message === 'NETWORK_FAILURE' ? 'Falha de rede ao listar instalações.' : 'Erro: ' + e.message);
         modal.remove(); resolve(null);
+         showError('Não foi possível carregar instalações', step1);
       }
     }
 
@@ -61,7 +67,8 @@ export async function openWizard() {
         };
       } catch(e) {
         alert(e.message === 'NETWORK_FAILURE' ? 'Falha de rede ao listar repositórios.' : 'Erro: ' + e.message);
-        modal.remove(); resolve(null);
+        modal.remove(); resolve(null);        
+        showError('Não foi possível carregar repositórios', step2);
       }
     }
 
@@ -90,10 +97,10 @@ export async function openWizard() {
           resolve({ installation_id, owner, repo, ref, readme_path, readme });
         } catch(err) {
           alert(err.message === 'NETWORK_FAILURE' ? 'Falha de rede ao baixar README.' : 'Erro: ' + err.message);
+          showError('Não foi possível carregar README', attempt);
         }
       };
     }
-
     step1();
   });
 }

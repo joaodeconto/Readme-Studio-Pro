@@ -16,7 +16,14 @@ import { lintMarkdown, lintLinksAndImages } from '../utils/lint.js';
 // Helpers
 // -----------------------------------------------------------------------------
 function parseJsonBody(req) { // body pode vir como string (parser raw)
-  return typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+  if (typeof req.body === 'string') {
+    try {
+      return JSON.parse(req.body);
+    } catch (err) {
+      return { error: 'INVALID_JSON', detail: String(err?.message ?? err) };
+    }
+  }
+  return req.body;
 }
 
 function proposeReadmeWithTOC(originalMd) { // gera TOC + aplica bloco idempotente
@@ -189,7 +196,9 @@ fastify.get('/discover/readme', async (req, res) => {
 // -----------------------------------------------------------------------------
 fastify.post('/analisar', async (req, res) => {
   try {
-    const { installation_id, owner, repo, ref = 'main', readme_path = 'README.md' } = parseJsonBody(req);
+    const body = parseJsonBody(req);
+    if (body?.error) return res.code(400).send(body);
+    const { installation_id, owner, repo, ref = 'main', readme_path = 'README.md' } = body;
     const octo = await getClient(installation_id);
     const { data: file } = await octo.request('GET /repos/{owner}/{repo}/contents/{path}', { owner, repo, path: readme_path, ref });
     const original = Buffer.from(file.content, 'base64').toString('utf8');
@@ -226,6 +235,7 @@ fastify.post('/analisar', async (req, res) => {
 fastify.post('/propor-pr', async (req, res) => {
   try {
     const body = parseJsonBody(req);
+    if (body?.error) return res.code(400).send(body);
     const { installation_id, owner, repo, base = 'main', head = `readme-studio/update-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`, readme_path = 'README.md', message = 'docs: atualiza README (TOC)', base_sha, new_content_utf8, labels = ['docs', 'readme-studio'], draft = true } = body;
 
     if (!new_content_utf8 || !base_sha) return res.code(400).send({ error: 'MISSING_FIELDS', detail: 'new_content_utf8 e base_sha são obrigatórios' });

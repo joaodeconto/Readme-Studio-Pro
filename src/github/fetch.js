@@ -84,7 +84,8 @@ async function discoverDefaultBranch(owner,repo,token){
   if(error==='NETWORK_FAILURE') throw new Error('NETWORK_FAILURE');
   if(!ok){ if(status===404) throw new Error('NOT_FOUND_REPO_OR_PRIVATE'); throw new Error('Falha ao obter repo'); }
   // nota: não precisamos do default_branch aqui se fallback funcionar
-  return 'main';
+
+  return data?.default_branch || 'main';
 }
 
 function apiLikelyBlocked(){ return location.protocol==='file:' || !/^https?:$/.test(location.protocol); }

@@ -156,7 +156,11 @@ export function bindUI() {
 
   $('#toggleAdv').onclick = () => {
     const p = $('#advPanel');
-    if (p) p.hidden = !p.hidden;
+    if (p) {
+      p.hidden = !p.hidden;
+      const g = $('#editorGrid');
+      if (g) g.classList.toggle('full', p.hidden);
+    }
   };
   $('#bold').onclick = () => {
     const sel = getSelectionRanges(mdEl);
