@@ -7,6 +7,7 @@ import cors from '@fastify/cors';
 import { App } from '@octokit/app';
 import { Webhooks } from '@octokit/webhooks';
 import { Octokit } from 'octokit';
+import { createAppAuth } from '@octokit/auth-app';
 
 // Utils do projeto
 import { buildTOC, wrapTOC, applyTOCBlock } from '../utils/toc.js';
@@ -70,7 +71,7 @@ await fastify.register(cors, {
     if (allow.has(origin)) return cb(null, true);
     return cb(new Error('CORS: origin not allowed'), false);
   },
-  methods: ['GET','POST','OPTIONS'],
+  methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
   maxAge: 86400,
 });
@@ -121,8 +122,13 @@ fastify.all('/webhooks/github', async (req, res) => {
 // -----------------------------------------------------------------------------
 fastify.get('/discover/installations', async (req, res) => {
   try {
-    const jwt = await app.getSignedJsonWebToken();
-    const octoApp = new Octokit({ auth: jwt });
+    const octoApp = new Octokit({
+      authStrategy: createAppAuth,
+      auth: {
+        appId: Number(process.env.GH_APP_ID),
+        privateKey: (process.env.GH_APP_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+      },
+    });
     const { data } = await octoApp.request('GET /app/installations', { per_page: 100 });
     const items = data.map(it => ({
       installation_id: it.id,
@@ -179,10 +185,10 @@ fastify.get('/discover/readme', async (req, res) => {
     const candidates = ['README.md', 'README.MD', 'Readme.md', 'readme.md', 'docs/README.md', '.github/README.md'];
     let readme_path = null;
     for (const path of candidates) {
-      try { await octo.request('GET /repos/{owner}/{repo}/contents/{path}', { owner, repo, path, ref }); readme_path = path; break; } catch {}
+      try { await octo.request('GET /repos/{owner}/{repo}/contents/{path}', { owner, repo, path, ref }); readme_path = path; break; } catch { }
     }
     if (!readme_path) {
-      try { const r = await octo.request('GET /repos/{owner}/{repo}/readme', { owner, repo, ref }); readme_path = r.data.path || 'README.md'; } catch {}
+      try { const r = await octo.request('GET /repos/{owner}/{repo}/readme', { owner, repo, ref }); readme_path = r.data.path || 'README.md'; } catch { }
     }
     res.send({ ref, readme_path });
   } catch (e) {
@@ -253,7 +259,7 @@ fastify.post('/propor-pr', async (req, res) => {
     const pr = await octo.request('POST /repos/{owner}/{repo}/pulls', { owner, repo, title: message, head, base, draft });
     try {
       await octo.request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', { owner, repo, issue_number: pr.data.number, labels });
-    } catch {}
+    } catch { }
 
     return res.send({ pr_number: pr.data.number, pr_url: pr.data.html_url, head_sha: pr.data.head.sha });
   } catch (err) {
