@@ -19,9 +19,6 @@ function toast(msg, type = 'info') {
   setTimeout(() => el.className = 'toast', 3000);
 }
 
-import { discoverInstallations, discoverRepos, discoverReadme, analisarRepo, proporPR } from '../github/fetch.js';
-import { state, setInput, setAnalysis, setPR } from '../state/store.js';
-
 export async function bindWizard() {
   // 1) listar instalações
   const inst = await discoverInstallations();
