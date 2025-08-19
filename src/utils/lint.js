@@ -14,6 +14,28 @@ function parseHeadings(md) {
     return heads;
 }
 
+// Lint simples de links/imagens (relativos)
+export function lintLinksAndImages(md) {
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const imgRegex  = /!\[([^\]]*)\]\(([^)]+)\)/g;
+  const links = [];
+  const images = [];
+
+  let m;
+  while ((m = linkRegex.exec(md))) {
+    const [_, text, url] = m;
+    // ignora anchors e http(s)
+    if (url.startsWith("#") || /^https?:\/\//i.test(url)) continue;
+    links.push({ text, url });
+  }
+  while ((m = imgRegex.exec(md))) {
+    const [_, alt, url] = m;
+    if (/^https?:\/\//i.test(url)) continue;
+    images.push({ alt, url });
+  }
+  return { links, images };
+}
+
 function findTOCBlock(md) {
     const lines = md.split('\n');
     let start = -1, end = -1;

@@ -4,9 +4,8 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { App } from '@octokit/app';
 import { Webhooks } from '@octokit/webhooks';
-import { lintLinksAndImages, buildTOC, wrapTOC, applyTOCBlock } from '../utils/toc.js';
-import { lintMarkdown } from '../utils/lint.js';
-
+import { buildTOC, wrapTOC, applyTOCBlock } from '../utils/toc.js';
+import {lintMarkdown, lintLinksAndImages,} from '../utils/lint.js';
 // -----------------------------------------------------------------------------
 // Helpers
 // -----------------------------------------------------------------------------
