@@ -10,6 +10,7 @@ export const state = {
   },
   analysis: null,        // resposta de /analisar (findings, preview, base_sha)
   pr: null,              // resposta de /propor-pr
+  original_readme: '',   // conteúdo original carregado
 };
 
 export function setInput(key, value) {
