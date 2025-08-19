@@ -170,7 +170,6 @@
       <button class="btn" id="btn-connect">Selecionar repositório…</button>
       <div class="actions">
         <button class="btn" id="btn-analisar">Analisar</button>
-        <button class="btn" id="btn-pr">Criar PR</button>
         <a id="pr-link" href="#" rel="noopener"></a>
       </div>
       <div id="toast" class="toast"></div>
@@ -192,11 +191,22 @@
       <ul id="lintList"></ul>
     </section>
 
-    <section style="margin:12px 0 32px" class="muted">
+  <section style="margin:12px 0 32px" class="muted">
       Como publicar: salve este arquivo como <code>index.html</code> em um repo (ex.: <b>readme-studio</b>). No GitHub,
       Settings → Pages → Deploy from a branch.
     </section>
   </main>
+  </div>
+
+  <div id="diff-modal" class="modal" hidden>
+    <div class="box">
+      <h3>Diff do README</h3>
+      <div id="diff-view" class="diff md"></div>
+      <div class="actions">
+        <button class="btn" id="btn-voltar">Voltar ao editor</button>
+        <button class="btn" id="btn-pr-confirm">Criar PR</button>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="./src/main.js"></script>
