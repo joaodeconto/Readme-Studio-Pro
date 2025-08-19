@@ -70,10 +70,12 @@ async function tryRaw(owner,repo,branches=['main','master','dev','stable'],paths
 }
 
 async function discoverDefaultBranch(owner,repo,token){
-  const {ok,status}=await fetchJSON(`https://api.github.com/repos/${owner}/${repo}`, token);
-  if(!ok){ if(status===404) throw new Error('NOT_FOUND_REPO_OR_PRIVATE'); throw new Error('Falha ao obter repo'); }
-  // nota: não precisamos do default_branch aqui se fallback funcionar
-  return 'main';
+  const {ok,status,data}=await fetchJSON(`https://api.github.com/repos/${owner}/${repo}`, token);
+  if(!ok){
+    if(status===404) throw new Error('NOT_FOUND_REPO_OR_PRIVATE');
+    throw new Error('Falha ao obter repo');
+  }
+  return data?.default_branch || 'main';
 }
 
 function apiLikelyBlocked(){ return location.protocol==='file:' || !/^https?:$/.test(location.protocol); }
@@ -138,13 +140,21 @@ export async function fetchReadme(spec,{forceRaw=false, token}={}){
       try { return await viaAPIReadme(); } catch(e){ if(String(e.message).includes('NOT_FOUND_REPO_OR_PRIVATE')) throw e; }
     }
     if (forceRaw || avoidAPI){
-      const def = branch || (await discoverDefaultBranch(owner,repo, token).catch(()=> 'main'));
+      let def = branch;
+      if (!def){
+        try{ def = await discoverDefaultBranch(owner,repo, token); }
+        catch{ def = 'main'; }
+      }
       return tryRaw(owner,repo,[def,'main','master','dev','stable']);
     }
     try { return await viaAPIReadme(); }
     catch(e){
       if (String(e.message).includes('NOT_FOUND_REPO_OR_PRIVATE')) throw e;
-      const def = branch || (await discoverDefaultBranch(owner,repo, token).catch(()=> 'main'));
+      let def = branch;
+      if (!def){
+        try{ def = await discoverDefaultBranch(owner,repo, token); }
+        catch{ def = 'main'; }
+      }
       return tryRaw(owner,repo,[def,'main','master']);
     }
   }
