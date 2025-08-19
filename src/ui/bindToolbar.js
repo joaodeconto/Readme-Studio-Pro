@@ -4,56 +4,22 @@ import { mdToHtml } from '../render/markdown.js';
 import { highlightAll } from '../render/highlight.js';
 import { applyEmojis } from '../features/emoji.js';
 import { buildTOC } from '../features/toc.js';
-import { toList, toCode, replaceSelection } from '../features/insert.js';
+import { toList, toCode, replaceSelection, getSelectionRanges } from '../features/insert.js';
 import { fetchReadme, parseRepoSpec } from '../github/fetch.js';
 import { TPL } from '../features/templates.js';
 import { attachHistory } from '../state/history.js';
+import { openWizard } from './wizard.js';
 import { lintMarkdown } from '../utils/lint.js';
 import { discoverInstallations, discoverRepos, discoverReadme, analisarRepo, proporPR } from '../github/fetch.js';
 import { state, setInput, setAnalysis, setPR } from '../state/store.js';
 import DiffMatchPatch from 'https://esm.sh/diff-match-patch';
+import { startAuthFlow } from '../github/auth.js';
 
 
 function toast(msg, type = 'info') {
   const el = $('#toast'); if (!el) return;
   el.textContent = msg; el.className = `toast ${type}`;
   setTimeout(() => el.className = 'toast', 3000);
-}
-
-export async function bindWizard() {
-  // 1) listar instalações
-  const inst = await discoverInstallations();
-  const selInst = document.querySelector('#sel-installation');
-  selInst.innerHTML = inst.items.map(i =>
-    `<option value="${i.installation_id}">${i.account_login} (${i.target_type})</option>`
-  ).join('');
-  selInst.addEventListener('change', async (e) => {
-    const installation_id = e.target.value;
-    state.inputs.installation_id = installation_id;
-
-    // 2) listar repos da instalação
-    const repos = await discoverRepos(installation_id);
-    const selRepo = document.querySelector('#sel-repo');
-    selRepo.innerHTML = repos.items
-      .map(r => `<option value="${r.owner}/${r.repo}">${r.full_name}</option>`)
-      .join('');
-
-    // escolheu repo → 3) descobrir branch e README
-    selRepo.addEventListener('change', async ev => {
-      const [owner, repo] = ev.target.value.split('/');
-      const info = await discoverReadme(installation_id, owner, repo);
-      state.inputs.owner = owner;
-      state.inputs.repo = repo;
-      state.inputs.ref = info.ref || 'main';
-      state.inputs.readme_path = info.readme_path || 'README.md';
-
-      // opcional: preencher campos visíveis
-      document.querySelector('#owner').value = owner;
-      document.querySelector('#repo').value = repo;
-      document.querySelector('#ref').value = state.inputs.ref;
-      document.querySelector('#readme_path').value = state.inputs.readme_path;
-    }, { once: true });
-  });
 }
 
 
@@ -68,6 +34,21 @@ export function bindUI() {
   const diffModal = $('#diff-modal');
   const diffView = $('#diff-view');
   $('#btn-voltar')?.addEventListener('click', () => { diffModal.hidden = true; });
+  const landing = $('#landing');
+  const app = $('#app');
+  const btnImport = $('#landing-import');
+  const btnCreate = $('#landing-create');
+  const btnOpen = $('#landing-open');
+  const defaultMd = `# Nome do Projeto\n\nBreve descrição…\n\n> [!TIP]\n> Use o painel à esquerda para inserir blocos prontos.\n`;
+
+  function showLanding() { landing.hidden = false; app.hidden = true; }
+  function hideLanding() { landing.hidden = true; app.hidden = false; }
+
+  if (!mdEl.value.trim()) {
+    showLanding();
+  } else {
+    hideLanding();
+  }
 
   function countStats(s) {
     const noCode = s.replace(/```[\s\S]*?```/g, '');
@@ -93,12 +74,20 @@ export function bindUI() {
     mdEl.hidden = !edit; prev.hidden = edit;
     if (!edit) update();
   }));
-
-  // inputs
-  ['installation_id', 'owner', 'repo', 'ref', 'readme_path', 'message'].forEach(id => {
-    const el = $(`#${id}`);
-    if (!el) return;
-    el.addEventListener('input', e => setInput(id, e.target.value));
+  $("#btn-connect")?.addEventListener("click", async () => {
+    try {
+      const res = await openWizard();
+      if (!res) return;
+      const { installation_id, owner, repo, ref, readme_path, readme } = res;
+      Object.assign(state.inputs, { installation_id, owner, repo, ref, readme_path });
+      mdEl.value = readme;
+      update();
+      toast("README carregado ✅", "ok");
+    } catch (err) {
+      console.error(err);
+      const msg = err?.message === 'NETWORK_FAILURE' ? 'Falha de rede ao carregar README' : 'Falha ao carregar README';
+      toast(msg, "warn");
+    }
   });
 
   // analisar
@@ -106,7 +95,7 @@ export function bindUI() {
     try {
       const { installation_id, owner, repo, ref, readme_path } = state.inputs;
       if (!installation_id || !owner || !repo) {
-        toast('Preencha installation_id, owner e repo.', 'warn');
+        toast('Selecione um repositório primeiro.', 'warn');
         return;
       }
       $('#btn-analisar').disabled = true;
@@ -133,7 +122,8 @@ export function bindUI() {
       toast('Análise concluída ✅', 'ok');
     } catch (e) {
       console.error(e);
-      toast('Falha na análise: ' + e.message, 'err');
+      if (e.message === 'NETWORK_FAILURE') toast('Falha de rede durante a análise', 'err');
+      else toast('Falha na análise: ' + e.message, 'err');
     } finally {
       $('#btn-analisar').disabled = false;
     }
@@ -162,7 +152,8 @@ export function bindUI() {
       toast('PR criado como draft 🚀', 'ok');
     } catch (e) {
       console.error(e);
-      toast('Falha ao criar PR: ' + e.message, 'err');
+      if (e.message === 'NETWORK_FAILURE') toast('Falha de rede ao criar PR', 'err');
+      else toast('Falha ao criar PR: ' + e.message, 'err');
     } finally {
       $('#btn-pr-confirm').disabled = false;
       if (diffModal) diffModal.hidden = true;
@@ -173,6 +164,34 @@ export function bindUI() {
   const history = attachHistory(mdEl, () => { update(); });
   $('#undo').onclick = () => history.undo();
   $('#redo').onclick = () => history.redo();
+
+  $('#toggleAdv').onclick = () => {
+    const p = $('#advPanel');
+    if (p) {
+      p.hidden = !p.hidden;
+      const g = $('#editorGrid');
+      if (g) g.classList.toggle('full', p.hidden);
+    }
+  };
+  $('#bold').onclick = () => {
+    const sel = getSelectionRanges(mdEl);
+    const txt = sel.text || 'texto';
+    replaceSelection(mdEl, `**${txt}**`);
+    update();
+  };
+  $('#heading').onclick = () => {
+    const sel = getSelectionRanges(mdEl);
+    let text = sel.text;
+    if (!text) {
+      const v = mdEl.value;
+      let s = v.lastIndexOf('\n', sel.start - 1) + 1; if (s < 0) s = 0;
+      let e = v.indexOf('\n', sel.start); if (e < 0) e = v.length;
+      text = v.slice(s, e); mdEl.selectionStart = s; mdEl.selectionEnd = e;
+    }
+    const lines = text.split(/\r?\n/).map(l => l ? '# ' + l.replace(/^#+\s*/, '') : l);
+    replaceSelection(mdEl, lines.join('\n'));
+    update();
+  };
 
   $('#new').onclick = () => { if (confirm('Limpar conteúdo?')) { mdEl.value = ''; update(); } };
   $('#save').onclick = () => {
@@ -191,7 +210,7 @@ export function bindUI() {
     const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.md,text/markdown,text/plain';
     inp.onchange = () => {
       const f = inp.files[0]; if (!f) return;
-      const r = new FileReader(); r.onload = () => { mdEl.value = r.result; update(); };
+      const r = new FileReader(); r.onload = () => { mdEl.value = r.result; update(); hideLanding(); };
       r.readAsText(f);
     };
     inp.click();
@@ -280,6 +299,16 @@ export function bindUI() {
     update();
   });
 
+  mdEl.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if (e.ctrlKey && !e.shiftKey && k === 'b') { e.preventDefault(); $('#bold').click(); }
+    else if (e.ctrlKey && !e.shiftKey && k === 'h') { e.preventDefault(); $('#heading').click(); }
+    else if (e.ctrlKey && !e.shiftKey && k === 'l') { e.preventDefault(); $('#toList').click(); }
+    else if (e.ctrlKey && e.shiftKey && k === 'c') { e.preventDefault(); $('#toCode').click(); }
+    else if (e.ctrlKey && !e.shiftKey && k === 't') { e.preventDefault(); $('#tocAuto').click(); }
+    else if (e.ctrlKey && !e.shiftKey && k === 'm') { e.preventDefault(); $('#toggleAdv').click(); }
+  });
+
 
 
   // Lê README do GitHub ou caminho RAW
@@ -292,11 +321,12 @@ export function bindUI() {
       log('parse spec', specStr, spec);
       const txt = await fetchReadme(spec, { forceRaw: !!$('#forceRaw')?.checked });
       if (!txt?.trim()) throw new Error('README vazio ou não encontrado');
-      mdEl.value = txt; update();
+      mdEl.value = txt; update(); hideLanding();
       log('README carregado. tamanho=', txt.length);
     } catch (err) {
       console.error(err); log('Erro', err?.message || String(err));
-      alert('Não consegui ler o README: ' + (err?.message || err));
+      const msg = err?.message === 'NETWORK_FAILURE' ? 'Falha de rede ao ler o README.' : 'Não consegui ler o README: ' + (err?.message || err);
+      alert(msg);
     } finally {
       fetchBtn.textContent = old; fetchBtn.disabled = false;
     }
@@ -323,12 +353,33 @@ export function bindUI() {
     renderLint(res);
   };
 
-  mdEl.value = `# Nome do Projeto
+  btnCreate?.addEventListener('click', () => {
+    hideLanding();
+    mdEl.value = defaultMd;
+    update();
+  });
 
-Breve descrição…
+  btnOpen?.addEventListener('click', () => {
+    hideLanding();
+    $('#open').click();
+  });
 
-> [!TIP]
-> Use o painel à esquerda para inserir blocos prontos.
-`;
+  btnImport?.addEventListener('click', async () => {
+    await startAuthFlow();
+    const specStr = prompt('owner/repo · owner/repo@branch · URL do repo · URL RAW do README');
+    if (!specStr) return;
+    try {
+      const spec = parseRepoSpec(specStr);
+      const txt = await fetchReadme(spec, { forceRaw: !!$('#forceRaw')?.checked });
+      if (!txt?.trim()) throw new Error('README vazio ou não encontrado');
+      mdEl.value = txt; update();
+      hideLanding();
+    } catch (err) {
+      console.error(err);
+      const msg = err?.message === 'NETWORK_FAILURE' ? 'Falha de rede ao ler o README.' : 'Não consegui ler o README: ' + (err?.message || err);
+      alert(msg);
+    }
+  });
+
   update();
 }

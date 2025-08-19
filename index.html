@@ -9,6 +9,12 @@
 </head>
 
 <body>
+  <div id="landing">
+    <button class="btn" id="landing-import">Importar do GitHub</button>
+    <button class="btn" id="landing-create">Criar do zero</button>
+    <button class="btn" id="landing-open">Abrir arquivo</button>
+  </div>
+  <div id="app" hidden>
   <header>
     <div class="wrap">
       <div class="title">README Studio • Modular <span class="muted">(Pro)</span></div>
@@ -38,13 +44,20 @@
           </select>
         </label>
         <button class="btn" id="gen">Gerar README padrão</button>
-        <button class="btn" id="tocAuto">TOC automático</button>
-        <button class="btn" id="toList">→ Lista</button>
-        <button class="btn" id="toCode">→ Código</button>
 
         <div class="split"></div>
-        <button class="btn" id="undo">Undo</button>
-        <button class="btn" id="redo">Redo</button>
+        <div class="btn-group">
+          <button class="btn" id="bold" title="Negrito (Ctrl+B)"><b>B</b></button>
+          <button class="btn" id="heading" title="Heading (Ctrl+H)">H1</button>
+          <button class="btn" id="toList" title="Lista (Ctrl+L)">•</button>
+          <button class="btn" id="toCode" title="Código (Ctrl+Shift+C)">&lt;/&gt;</button>
+          <button class="btn" id="tocAuto" title="Sumário (Ctrl+T)">☰</button>
+          <button class="btn" id="undo" title="Undo (Ctrl+Z)">↶</button>
+          <button class="btn" id="redo" title="Redo (Ctrl+Y)">↷</button>
+          <button class="btn" id="toggleAdv" title="Ferramentas avançadas (Ctrl+M)">⚙️</button>
+        </div>
+
+        <div class="split"></div>
         <button class="btn" id="lint">Lint README</button>
         <button class="btn" id="copy">Copiar</button>
         <span class="muted" id="stats">0 palavras</span>
@@ -54,8 +67,8 @@
   </header>
 
   <main class="wrap">
-    <div class="grid">
-      <div class="panel">
+    <div id="editorGrid">
+      <div class="panel" id="advPanel" hidden>
         <h3 style="margin:0 0 8px">Inserir bloco</h3>
         <div class="fieldset">
           <div class="row">
@@ -154,21 +167,7 @@
 
     <section class="panel">
       <h3>Conectar repositório</h3>
-      <label>Instalação
-        <select id="sel-installation"></select>
-      </label>
-
-      <label>Repositório
-        <select id="sel-repo"></select>
-      </label>
-      <div class="grid">
-        <label>installation_id <input id="installation_id" placeholder="123456" /></label>
-        <label>owner <input id="owner" placeholder="org-ou-usuario" /></label>
-        <label>repo <input id="repo" placeholder="nome-do-repo" /></label>
-        <label>ref <input id="ref" value="main" /></label>
-        <label>readme_path <input id="readme_path" value="README.md" /></label>
-        <label>message <input id="message" value="docs: atualiza README (TOC)" /></label>
-      </div>
+      <button class="btn" id="btn-connect">Selecionar repositório…</button>
       <div class="actions">
         <button class="btn" id="btn-analisar">Analisar</button>
         <a id="pr-link" href="#" rel="noopener"></a>
@@ -197,6 +196,7 @@
       Settings → Pages → Deploy from a branch.
     </section>
   </main>
+  </div>
 
   <div id="diff-modal" class="modal" hidden>
     <div class="box">
