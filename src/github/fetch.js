@@ -2,10 +2,15 @@ import { log } from '../utils/log.js';
 import { BACKEND_URL } from './config.js';
 
 
+async function safeFetch(input, init){
+  try{ return await fetch(input, init); }
+  catch{ throw new Error('NETWORK_FAILURE'); }
+}
+
 async function getJSON(path, params) {
   const url = new URL(`${BACKEND_URL}${path}`);
   if (params) Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
-  const r = await fetch(url, { method: 'GET' });
+  const r = await safeFetch(url, { method: 'GET' });
   if (!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
   return r.json();
 }
@@ -26,7 +31,7 @@ function b64ToText(b64){
 }
 
 async function postJSON(path, body) {
-  const r = await fetch(`${BACKEND_URL}${path}`, {
+  const r = await safeFetch(`${BACKEND_URL}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
@@ -52,25 +57,31 @@ async function fetchJSON(url, token){
     'X-GitHub-Api-Version': '2022-11-28'
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  const r = await fetch(url, { headers, cache: 'no-store', mode: 'cors' });
-  const text = await r.text();
-  let data = null; try { data = JSON.parse(text) } catch {}
-  log('HTTP', r.status, url, data?.message || text.slice(0,140));
-  return { ok: r.ok, status: r.status, headers: r.headers, data, text };
+  try{
+    const r = await safeFetch(url, { headers, cache: 'no-store', mode: 'cors' });
+    const text = await r.text();
+    let data = null; try { data = JSON.parse(text) } catch {}
+    log('HTTP', r.status, url, data?.message || text.slice(0,140));
+    return { ok: r.ok, status: r.status, headers: r.headers, data, text };
+  }catch(e){
+    if(e.message==='NETWORK_FAILURE') return { ok:false, status:0, headers:null, data:null, text:null, error:'NETWORK_FAILURE' };
+    throw e;
+  }
 }
 
 async function tryRaw(owner,repo,branches=['main','master','dev','stable'],paths=['README.md','Readme.md','readme.md','README','README.pt-BR.md','README.mdx','docs/README.md']){
   for(const b of branches) for(const p of paths){
     const ru=`https://raw.githubusercontent.com/${owner}/${repo}/${b}/${p}?ts=${Date.now()}`;
     log('try RAW', ru);
-    const rr=await fetch(ru,{cache:'no-store',mode:'cors'});
+    const rr=await safeFetch(ru,{cache:'no-store',mode:'cors'});
     if (rr.ok) return await rr.text();
   }
   throw new Error('RAW fallback falhou');
 }
 
 async function discoverDefaultBranch(owner,repo,token){
-  const {ok,status}=await fetchJSON(`https://api.github.com/repos/${owner}/${repo}`, token);
+  const {ok,status,error}=await fetchJSON(`https://api.github.com/repos/${owner}/${repo}`, token);
+  if(error==='NETWORK_FAILURE') throw new Error('NETWORK_FAILURE');
   if(!ok){ if(status===404) throw new Error('NOT_FOUND_REPO_OR_PRIVATE'); throw new Error('Falha ao obter repo'); }
   // nota: não precisamos do default_branch aqui se fallback funcionar
   return 'main';
@@ -98,7 +109,7 @@ export async function fetchReadme(spec,{forceRaw=false, token}={}){
   if(!spec) throw new Error('Especificação inválida');
 
   if(spec.rawUrl){
-    const r=await fetch(spec.rawUrl,{cache:'no-store',mode:'cors'});
+    const r=await safeFetch(spec.rawUrl,{cache:'no-store',mode:'cors'});
     if(!r.ok) throw new Error('Falha ao baixar RAW: '+r.status);
     return await r.text();
   }
@@ -108,7 +119,8 @@ export async function fetchReadme(spec,{forceRaw=false, token}={}){
 
   async function viaAPIReadme(){
     const url=`https://api.github.com/repos/${owner}/${repo}/readme${branch?`?ref=${encodeURIComponent(branch)}`:''}`;
-    const {ok,status,data}=await fetchJSON(url, token);
+    const {ok,status,data,error}=await fetchJSON(url, token);
+    if(error==='NETWORK_FAILURE') throw new Error('NETWORK_FAILURE');
     if(!ok){
       if (status===404) throw new Error('NOT_FOUND_REPO_OR_PRIVATE');
       if (status===403 && /rate limit/i.test(data?.message||'')) throw new Error('RATE_LIMIT');
@@ -119,7 +131,8 @@ export async function fetchReadme(spec,{forceRaw=false, token}={}){
   }
 
   async function viaAPIContents(pth, ref){
-    const {ok,status,data}=await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(pth)}?ref=${encodeURIComponent(ref)}`, token);
+    const {ok,status,data,error}=await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(pth)}?ref=${encodeURIComponent(ref)}`, token);
+    if(error==='NETWORK_FAILURE') throw new Error('NETWORK_FAILURE');
     if(ok && data?.content) return b64ToText(data.content);
     if(status===404) throw new Error('NOT_FOUND_REPO_OR_PRIVATE');
     throw new Error('Arquivo não encontrado no repositório');
@@ -130,7 +143,7 @@ export async function fetchReadme(spec,{forceRaw=false, token}={}){
     if (token && !avoidAPI){
       for (const b of branches){ try { return await viaAPIContents(path, b); } catch(e){ if(String(e.message).includes('NOT_FOUND_REPO_OR_PRIVATE')) throw e; } }
     }
-    try { return await tryRaw(owner,repo,branches,[path]); } catch(e){ if (token) throw e; }
+    try { return await tryRaw(owner,repo,branches,[path]); } catch(e){ if (e.message==='NETWORK_FAILURE') throw e; if (token) throw e; }
   }
 
   if (owner && repo && !path){
@@ -138,13 +151,19 @@ export async function fetchReadme(spec,{forceRaw=false, token}={}){
       try { return await viaAPIReadme(); } catch(e){ if(String(e.message).includes('NOT_FOUND_REPO_OR_PRIVATE')) throw e; }
     }
     if (forceRaw || avoidAPI){
-      const def = branch || (await discoverDefaultBranch(owner,repo, token).catch(()=> 'main'));
+      const def = branch || (await discoverDefaultBranch(owner,repo, token).catch(e=>{
+        if(e.message==='NETWORK_FAILURE') throw e;
+        return 'main';
+      }));
       return tryRaw(owner,repo,[def,'main','master','dev','stable']);
     }
     try { return await viaAPIReadme(); }
     catch(e){
-      if (String(e.message).includes('NOT_FOUND_REPO_OR_PRIVATE')) throw e;
-      const def = branch || (await discoverDefaultBranch(owner,repo, token).catch(()=> 'main'));
+      if (String(e.message).includes('NOT_FOUND_REPO_OR_PRIVATE') || e.message==='NETWORK_FAILURE') throw e;
+      const def = branch || (await discoverDefaultBranch(owner,repo, token).catch(e=>{
+        if(e.message==='NETWORK_FAILURE') throw e;
+        return 'main';
+      }));
       return tryRaw(owner,repo,[def,'main','master']);
     }
   }

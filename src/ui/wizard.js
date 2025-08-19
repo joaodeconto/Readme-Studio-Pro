@@ -21,13 +21,18 @@ export async function openWizard() {
         <h3>Instalação</h3>
         <select id="wiz-inst"></select>
         <div class="actions"><button class="btn" id="next1">Próximo</button></div>`;
-      const inst = await discoverInstallations();
-      const sel = box.querySelector('#wiz-inst');
-      sel.innerHTML = inst.items.map(i => `<option value="${i.installation_id}">${i.account_login}</option>`).join('');
-      box.querySelector('#next1').onclick = () => {
-        installation_id = sel.value;
-        step2();
-      };
+      try {
+        const inst = await discoverInstallations();
+        const sel = box.querySelector('#wiz-inst');
+        sel.innerHTML = inst.items.map(i => `<option value="${i.installation_id}">${i.account_login}</option>`).join('');
+        box.querySelector('#next1').onclick = () => {
+          installation_id = sel.value;
+          step2();
+        };
+      } catch(e) {
+        alert(e.message === 'NETWORK_FAILURE' ? 'Falha de rede ao listar instalações.' : 'Erro: ' + e.message);
+        modal.remove(); resolve(null);
+      }
     }
 
     async function step2() {
@@ -36,27 +41,38 @@ export async function openWizard() {
         <h3>Repositório</h3>
         <input type="text" id="wiz-search" placeholder="Buscar..." />
         <ul id="wiz-repos" class="repo-list"></ul>`;
-      const data = await discoverRepos(installation_id);
-      const repos = data.items || [];
-      const listEl = box.querySelector('#wiz-repos');
-      function render(list) {
-        listEl.innerHTML = list.map(r => `<li data-full="${r.owner}/${r.repo}">${r.full_name}</li>`).join('');
+      try {
+        const data = await discoverRepos(installation_id);
+        const repos = data.items || [];
+        const listEl = box.querySelector('#wiz-repos');
+        function render(list) {
+          listEl.innerHTML = list.map(r => `<li data-full="${r.owner}/${r.repo}">${r.full_name}</li>`).join('');
+        }
+        render(repos);
+        box.querySelector('#wiz-search').addEventListener('input', e => {
+          const q = e.target.value.toLowerCase();
+          render(repos.filter(r => r.full_name.toLowerCase().includes(q)));
+        });
+        listEl.onclick = e => {
+          const li = e.target.closest('li');
+          if (!li) return;
+          [owner, repo] = li.dataset.full.split('/');
+          step3();
+        };
+      } catch(e) {
+        alert(e.message === 'NETWORK_FAILURE' ? 'Falha de rede ao listar repositórios.' : 'Erro: ' + e.message);
+        modal.remove(); resolve(null);
       }
-      render(repos);
-      box.querySelector('#wiz-search').addEventListener('input', e => {
-        const q = e.target.value.toLowerCase();
-        render(repos.filter(r => r.full_name.toLowerCase().includes(q)));
-      });
-      listEl.onclick = e => {
-        const li = e.target.closest('li');
-        if (!li) return;
-        [owner, repo] = li.dataset.full.split('/');
-        step3();
-      };
     }
 
     async function step3() {
-      const info = await discoverReadme(installation_id, owner, repo);
+      let info;
+      try {
+        info = await discoverReadme(installation_id, owner, repo);
+      } catch(e) {
+        alert(e.message === 'NETWORK_FAILURE' ? 'Falha de rede ao obter README.' : 'Erro: ' + e.message);
+        modal.remove(); resolve(null); return;
+      }
       ref = info.ref || 'main';
       readme_path = info.readme_path || 'README.md';
       box.innerHTML = `
@@ -68,9 +84,13 @@ export async function openWizard() {
       box.querySelector('#finish').onclick = async () => {
         ref = box.querySelector('#wiz-ref').value.trim() || ref;
         readme_path = box.querySelector('#wiz-path').value.trim() || readme_path;
-        const readme = await fetchReadme({ owner, repo, branch: ref, path: readme_path });
-        modal.remove();
-        resolve({ installation_id, owner, repo, ref, readme_path, readme });
+        try {
+          const readme = await fetchReadme({ owner, repo, branch: ref, path: readme_path });
+          modal.remove();
+          resolve({ installation_id, owner, repo, ref, readme_path, readme });
+        } catch(err) {
+          alert(err.message === 'NETWORK_FAILURE' ? 'Falha de rede ao baixar README.' : 'Erro: ' + err.message);
+        }
       };
     }
 
