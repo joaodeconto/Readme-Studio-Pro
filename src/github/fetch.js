@@ -2,6 +2,23 @@ import { log } from '../utils/log.js';
 import { BACKEND_URL } from './config.js';
 
 
+async function getJSON(path, params) {
+  const url = new URL(`${BACKEND_URL}${path}`);
+  if (params) Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const r = await fetch(url, { method: 'GET' });
+  if (!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
+  return r.json();
+}
+
+export const discoverInstallations = () =>
+  getJSON('/discover/installations');
+
+export const discoverRepos = (installation_id) =>
+  getJSON('/discover/repos', { installation_id });
+
+export const discoverReadme = (installation_id, owner, repo) =>
+  getJSON('/discover/readme', { installation_id, owner, repo });
+
 function b64ToText(b64){
   try{ const bin=atob(b64.replace(/\s/g,'')); const bytes=new Uint8Array([...bin].map(ch=>ch.charCodeAt(0)));
        return new TextDecoder('utf-8').decode(bytes);

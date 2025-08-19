@@ -9,7 +9,7 @@ import { fetchReadme, parseRepoSpec } from '../github/fetch.js';
 import { TPL } from '../features/templates.js';
 import { attachHistory } from '../state/history.js';
 import { lintMarkdown } from '../utils/lint.js';
-import { analisarRepo, proporPR } from '../github/fetch.js';
+import { discoverInstallations, discoverRepos, discoverReadme, analisarRepo, proporPR } from '../github/fetch.js';
 import { state, setInput, setAnalysis, setPR } from '../state/store.js';
 
 
@@ -17,6 +17,45 @@ function toast(msg, type = 'info') {
   const el = $('#toast'); if (!el) return;
   el.textContent = msg; el.className = `toast ${type}`;
   setTimeout(() => el.className = 'toast', 3000);
+}
+
+import { discoverInstallations, discoverRepos, discoverReadme, analisarRepo, proporPR } from '../github/fetch.js';
+import { state, setInput, setAnalysis, setPR } from '../state/store.js';
+
+export async function bindWizard() {
+  // 1) listar instalações
+  const inst = await discoverInstallations();
+  const selInst = document.querySelector('#sel-installation');
+  selInst.innerHTML = inst.items.map(i =>
+    `<option value="${i.installation_id}">${i.account_login} (${i.target_type})</option>`
+  ).join('');
+  selInst.addEventListener('change', async (e) => {
+    const installation_id = e.target.value;
+    state.inputs.installation_id = installation_id;
+
+    // 2) listar repos da instalação
+    const repos = await discoverRepos(installation_id);
+    const selRepo = document.querySelector('#sel-repo');
+    selRepo.innerHTML = repos.items
+      .map(r => `<option value="${r.owner}/${r.repo}">${r.full_name}</option>`)
+      .join('');
+
+    // escolheu repo → 3) descobrir branch e README
+    selRepo.addEventListener('change', async ev => {
+      const [owner, repo] = ev.target.value.split('/');
+      const info = await discoverReadme(installation_id, owner, repo);
+      state.inputs.owner = owner;
+      state.inputs.repo = repo;
+      state.inputs.ref = info.ref || 'main';
+      state.inputs.readme_path = info.readme_path || 'README.md';
+
+      // opcional: preencher campos visíveis
+      document.querySelector('#owner').value = owner;
+      document.querySelector('#repo').value = repo;
+      document.querySelector('#ref').value = state.inputs.ref;
+      document.querySelector('#readme_path').value = state.inputs.readme_path;
+    }, { once: true });
+  });
 }
 
 

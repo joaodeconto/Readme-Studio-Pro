@@ -154,6 +154,13 @@
 
     <section class="panel">
       <h3>Conectar repositório</h3>
+      <label>Instalação
+        <select id="sel-installation"></select>
+      </label>
+
+      <label>Repositório
+        <select id="sel-repo"></select>
+      </label>
       <div class="grid">
         <label>installation_id <input id="installation_id" placeholder="123456" /></label>
         <label>owner <input id="owner" placeholder="org-ou-usuario" /></label>
@@ -179,7 +186,7 @@
       <h3>Preview (proposto)</h3>
       <div id="preview-after" class="md"></div>
     </section>
-    
+
     <section class="panel" id="lintPanel" hidden>
       <h3 style="margin:0 0 8px">Relatório de Lint</h3>
       <div id="lintSummary" class="muted" style="margin-bottom:6px"></div>

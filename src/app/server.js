@@ -88,6 +88,7 @@ webhooks.onAny(({ id, name, payload }) => {
 });
 
 fastify.all('/webhooks/github', async (req, res) => {
+
   try {
     // req.body AQUI É STRING CRUA (por causa do parser acima)
     await webhooks.verifyAndReceive({
@@ -266,6 +267,107 @@ fastify
     console.error(err);
     process.exit(1);
   });
+
+// -----------------------------------------------------------------------------
+// Discover
+// -----------------------------------------------------------------------------
+
+  // == DISCOVER: instalações do App (mostra nome/slug pra escolher) ==
+fastify.get('/discover/installations', async (req, res) => {
+  try {
+    // JWT do App
+    const jwtOcto = await app.getInstallationOctokit(0).constructor({ authStrategy: app.auth, auth: { appId: app.appId, privateKey: app.privateKey }});
+    // A forma mais simples é usar o próprio 'app' para chamar a rota de app:
+    const appOcto = await app.octokit; // disponível nas versões novas; fallback abaixo:
+    const octo = appOcto || (await app.getInstallationOctokit(0)); // compat
+
+    const resp = await octo.request('GET /app/installations', { per_page: 100 });
+    const items = resp.data.map(it => ({
+      installation_id: it.id,
+      account_login: it.account?.login,
+      account_type: it.account?.type,
+      target_type: it.target_type, // Organization/User
+      repository_selection: it.repository_selection // all/selected
+    }));
+    res.send({ items });
+  } catch (e) {
+    console.error('[discover/installations]', e);
+    res.code(500).send({ error: 'DISCOVER_INSTALLATIONS_FAILED', detail: String(e?.message ?? e) });
+  }
+});
+
+// == DISCOVER: repositórios de uma instalação ==
+fastify.get('/discover/repos', async (req, res) => {
+  try {
+    const installation_id = Number(req.query.installation_id);
+    if (!installation_id) return res.code(400).send({ error: 'MISSING_installation_id' });
+
+    const octo = await getClient(installation_id);
+    const out = [];
+    let page = 1;
+    while (true) {
+      const { data } = await octo.request('GET /installation/repositories', { per_page: 100, page });
+      out.push(...data.repositories.map(r => ({
+        owner: r.owner.login,
+        repo: r.name,
+        full_name: r.full_name,
+        private: r.private,
+        default_branch: r.default_branch
+      })));
+      if (!data.repositories || data.repositories.length < 100) break;
+      page += 1;
+    }
+    res.send({ items: out });
+  } catch (e) {
+    console.error('[discover/repos]', e);
+    res.code(500).send({ error: 'DISCOVER_REPOS_FAILED', detail: String(e?.message ?? e) });
+  }
+});
+
+// == DISCOVER: adivinhar README (branch padrão + caminho) ==
+fastify.get('/discover/readme', async (req, res) => {
+  try {
+    const installation_id = Number(req.query.installation_id);
+    const owner = String(req.query.owner);
+    const repo  = String(req.query.repo);
+    if (!installation_id || !owner || !repo)
+      return res.code(400).send({ error: 'MISSING_PARAMS', detail: 'installation_id, owner, repo' });
+
+    const octo = await getClient(installation_id);
+
+    // 1) branch padrão
+    const { data: repoInfo } = await octo.request('GET /repos/{owner}/{repo}', { owner, repo });
+    const ref = repoInfo.default_branch || 'main';
+
+    // 2) caminhos prováveis de README
+    const candidates = [
+      'README.md','README.MD','Readme.md','readme.md',
+      'docs/README.md','.github/README.md'
+    ];
+
+    // 3) testa candidates via Contents API (primeiro que existir, para na primeira ocorrência)
+    let readme_path = null;
+    for (const path of candidates) {
+      try {
+        await octo.request('GET /repos/{owner}/{repo}/contents/{path}', { owner, repo, path, ref });
+        readme_path = path; break;
+      } catch { /* tenta o próximo */ }
+    }
+
+    // fallback: tenta /readme da API (retorna conteúdo padrão do README)
+    if (!readme_path) {
+      try {
+        const r = await octo.request('GET /repos/{owner}/{repo}/readme', { owner, repo, ref });
+        readme_path = r.data.path || 'README.md';
+      } catch {}
+    }
+
+    res.send({ ref, readme_path });
+  } catch (e) {
+    console.error('[discover/readme]', e);
+    res.code(500).send({ error: 'DISCOVER_README_FAILED', detail: String(e?.message ?? e) });
+  }
+});
 
 
 
