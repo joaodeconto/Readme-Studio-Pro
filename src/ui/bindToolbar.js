@@ -11,6 +11,7 @@ import { attachHistory } from '../state/history.js';
 import { lintMarkdown } from '../utils/lint.js';
 import { discoverInstallations, discoverRepos, discoverReadme, analisarRepo, proporPR } from '../github/fetch.js';
 import { state, setInput, setAnalysis, setPR } from '../state/store.js';
+import DiffMatchPatch from 'https://esm.sh/diff-match-patch';
 
 
 function toast(msg, type = 'info') {
@@ -64,6 +65,9 @@ export function bindUI() {
   const useEmoji = $('#useEmoji');
   const bakeEmoji = $('#bakeEmoji');
   const fetchBtn = $('#fetchGH');
+  const diffModal = $('#diff-modal');
+  const diffView = $('#diff-view');
+  $('#btn-voltar')?.addEventListener('click', () => { diffModal.hidden = true; });
 
   function countStats(s) {
     const noCode = s.replace(/```[\s\S]*?```/g, '');
@@ -120,6 +124,12 @@ export function bindUI() {
       // preview antes/depois
       const preview = data.preview?.new_content_utf8 || '';
       $('#preview-after').innerHTML = mdToHtml(preview);
+      // diff entre original e proposto
+      const dmp = new DiffMatchPatch();
+      const diff = dmp.diff_main(mdEl.value, preview);
+      dmp.diff_cleanupSemantic(diff);
+      if (diffView) diffView.innerHTML = dmp.diff_prettyHtml(diff);
+      if (diffModal) diffModal.hidden = false;
       toast('Análise concluída ✅', 'ok');
     } catch (e) {
       console.error(e);
@@ -130,14 +140,14 @@ export function bindUI() {
   });
 
   // propor PR
-  $('#btn-pr')?.addEventListener('click', async () => {
+  $('#btn-pr-confirm')?.addEventListener('click', async () => {
     try {
       const { installation_id, owner, repo, ref, readme_path, message } = state.inputs;
       const analysis = state.analysis;
       if (!analysis?.base_sha || !analysis?.preview?.new_content_utf8) {
         toast('Rode a análise primeiro.', 'warn'); return;
       }
-      $('#btn-pr').disabled = true;
+      $('#btn-pr-confirm').disabled = true;
       const head = `readme-studio/update-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
       const pr = await proporPR({
         installation_id: Number(installation_id), owner, repo,
@@ -154,7 +164,8 @@ export function bindUI() {
       console.error(e);
       toast('Falha ao criar PR: ' + e.message, 'err');
     } finally {
-      $('#btn-pr').disabled = false;
+      $('#btn-pr-confirm').disabled = false;
+      if (diffModal) diffModal.hidden = true;
     }
   });
 
