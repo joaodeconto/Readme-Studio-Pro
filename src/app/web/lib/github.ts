@@ -1,9 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
 
 export async function fetchFileContent(owner: string, repo: string, path: string): Promise<string> {
-  // TODO: substituir por chamada real à API (GitHub REST ou conector interno)
   const res = await fetch(`/api/github/file?owner=${owner}&repo=${repo}&path=${encodeURIComponent(path)}`);
-  if (!res.ok) throw new Error('Falha ao obter ficheiro');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Falha ao obter ficheiro');
+  }
   const data = await res.json();
   return atob(data.content);
 }
@@ -25,13 +27,15 @@ export function useUpdateFile() {
       message: string;
       sha: string;
     }) => {
-      // TODO: chamar rota interna ou conector que faz PUT no GitHub
-      const res = await fetch('/api/github/update', {
-        method: 'POST',
+      const res = await fetch('/api/github/file', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ owner, repo, path, content: btoa(content), message, sha }),
       });
-      if (!res.ok) throw new Error('Falha ao atualizar ficheiro');
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Falha ao atualizar ficheiro');
+      }
       return res.json();
     },
     onMutate: async () => {
