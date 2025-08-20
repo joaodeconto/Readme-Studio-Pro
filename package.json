@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node ./src/app/server.js",
+    "dev": "concurrently \"node src/app/api/server.js\" \"next dev\"",
     "test": "node --test",
     "start": "next start",
+    "build": "next build",
     "lint": "next lint"
   },
   "dependencies": {
@@ -16,6 +17,7 @@
     "@sentry/nextjs": "latest",
     "@tanstack/react-query": "latest",
     "@uiw/react-codemirror": "latest",
+    "diff-match-patch": "^1.0.5",
     "dotenv": "^17.2.1",
     "fastify": "^5.5.0",
     "framer-motion": "latest",
@@ -47,9 +49,11 @@
     "@types/pg-pool": "^2.0.6",
     "@types/tedious": "^4.0.14",
     "autoprefixer": "latest",
+    "concurrently": "^9.2.0",
     "playwright": "latest",
     "postcss": "latest",
     "tailwindcss": "latest",
+    "typescript": "5.9.2",
     "vitest": "latest"
   }
 }

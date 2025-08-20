@@ -1,10 +1,10 @@
-import Topbar from '../../../../../../src/ui/components/shell/Topbar.jsx';
-import StatusBar from '../../../../../ui/components/shell/StatusBar';
-import MdEditor from '../../../../../ui/components/editor/MdEditor';
-import MdPreview from '../../../../../ui/components/editor/MdPreview';
-import Inspector from '../../../../../ui/components/editor/Inspector';
-import { useEditorStore } from '../../../../../ui/state/editor';
-import { useRepoStore } from '../../../../../ui/state/repo';
+import Topbar from '@ui/components/shell/Topbar';
+import StatusBar from '@ui/components/shell/StatusBar';
+import MdEditor from '@ui/components/editor/MdEditor';
+import MdPreview from '@ui/components/editor/MdPreview';
+import Inspector from '@ui/components/editor/Inspector';
+import { useEditorStore } from '@ui/state/editor';
+import { useRepoStore } from '@ui/state/repo';
 import { useEffect, useState } from 'react';
 
 export default function EditorPage() {
@@ -12,6 +12,8 @@ export default function EditorPage() {
   const { branch } = useRepoStore();
   const [rightPreview, setRightPreview] = useState(false);
   const [autosaveAt, setAutosaveAt] = useState<string>();
+  const [lintCount, setLintCount] = useState(0);
+  const editorRef = useRef<EditorView>();
 
   // Autosave local (offline-tolerant)
   useEffect(() => {
@@ -55,8 +57,9 @@ export default function EditorPage() {
               Preview à direita
             </label>
           </div>
+          <Toolbar editorRef={editorRef} />
           <div className="grid grid-cols-2 gap-3 overflow-hidden">
-            <MdEditor value={content} onChange={setContent} />
+            <MdEditor value={content} onChange={setContent} viewRef={editorRef} />
             {rightPreview ? (
               <MdPreview value={content} />
             ) : (
@@ -67,7 +70,8 @@ export default function EditorPage() {
         {/* Inspector fixo à direita */}
         <Inspector />
       </div>
-      <StatusBar autosaveAt={autosaveAt} branch={branch} lintCount={0} />
+      <AnalysisBar setLintCount={setLintCount} />
+      <StatusBar autosaveAt={autosaveAt} branch={branch} lintCount={lintCount} />
     </div>
   );
 }
