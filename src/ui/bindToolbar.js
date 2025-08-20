@@ -7,7 +7,6 @@ import { buildTOC } from '../features/toc.js';
 import { toList, toCode, replaceSelection, getSelectionRanges } from '../features/insert.js';
 import { TPL } from '../features/templates.js';
 import { attachHistory } from '../state/history.js';
-import { openWizard } from './wizard.js';
 import { lintMarkdown } from '../utils/lint.js';
 import { analisarRepo, proporPR } from '../github/fetch.js';
 import { state, setAnalysis, setPR } from '../state/store.js';
@@ -36,10 +35,8 @@ export function bindUI() {
   const btnPreview = $('#btn-preview');
   const btnPrConfirm = $('#btn-pr-confirm');
   let analysisReady = false;
-  let step = 1;
 
   function setStep(n) {
-    step = n;
     stepConnect.hidden = n !== 1;
     app.hidden = n === 1;
     if (diffModal) diffModal.hidden = n !== 3;
@@ -75,27 +72,10 @@ export function bindUI() {
     mdEl.hidden = !edit; prev.hidden = edit;
     if (!edit) update();
   }));
-  async function handleWizard() {
-    try {
-      const res = await openWizard();
-      if (!res) return;
-      const { installation_id, owner, repo, ref, readme_path, readme, base_sha } = res;
-      Object.assign(state.inputs, { installation_id, owner, repo, ref, readme_path, base_sha });
-      state.original_readme = readme;
-      mdEl.value = readme;
-      update();
-      setStep(2);
-      analysisReady = false;
-      if (btnPreview) btnPreview.disabled = true;
-      toast('README carregado ✅', 'ok');
-    } catch (err) {
-      console.error(err);
-      const msg = err?.message === 'NETWORK_FAILURE' ? 'Falha de rede ao carregar README' : 'Falha ao carregar README';
-      toast(msg, 'warn');
-    }
-  }
 
-  $('#btn-connect')?.addEventListener('click', handleWizard);
+  $('#btn-connect')?.addEventListener('click', () => {
+    window.location.href = '/api/github/oauth/start';
+  });
 
   $('#btn-demo')?.addEventListener('click', () => {
     mdEl.value = '# Projeto Demo\n\nComece a escrever o README aqui...';
