@@ -1,5 +1,5 @@
 "use client";
-import { useUIStore } from '../../state/ui';
+import { useUIStore } from '@ui/state/ui';
 import TocPanel from './panels/TocPanel';
 import EmojiPanel from './panels/EmojiPanel';
 import SnippetLibrary from './panels/SnippetLibrary';

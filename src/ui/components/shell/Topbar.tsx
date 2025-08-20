@@ -1,7 +1,7 @@
 "use client";
-import RepoPicker from '../data/RepoPicker';
-import BranchSelect from '../data/BranchSelect';
-import Button from '../ui/button';
+import RepoPicker from '@ui/components/data/RepoPicker';
+import BranchSelect from '@ui/components/data/BranchSelect';
+import Button from '@ui/components/ui/button';
 import { Wand2 } from 'lucide-react';
 
 export default function Topbar({
