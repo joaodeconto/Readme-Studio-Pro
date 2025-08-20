@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { githubApp } from "@/lib/github/app";
+import { getSessionUser } from "@/lib/auth/session";
+import { prisma } from "@/lib/db/client";
 
 export const runtime = "nodejs";
 
@@ -12,15 +14,31 @@ export async function GET(req: NextRequest) {
   const storedState = req.cookies.get(STATE_COOKIE)?.value;
 
   if (!code || !state || !storedState || state !== storedState) {
-    const res = NextResponse.redirect(new URL("/", req.url));
+    const res = NextResponse.redirect(new URL("/?github=error", req.url));
     res.cookies.delete(STATE_COOKIE);
     return res;
   }
 
-  const { authentication } = await githubApp.oauth.createToken({ code });
-  // TODO: vincular token ao usuário local
+  const session = await getSessionUser(req);
+  if (!session) {
+    const res = NextResponse.redirect(new URL("/?github=unauthenticated", req.url));
+    res.cookies.delete(STATE_COOKIE);
+    return res;
+  }
 
-  const res = NextResponse.redirect(new URL("/dashboard", req.url));
-  res.cookies.delete(STATE_COOKIE);
-  return res;
+  try {
+    const { authentication } = await githubApp.oauth.createToken({ code });
+    await prisma.user.update({
+      where: { id: session.id },
+      data: { githubAccessToken: authentication.token },
+    });
+    const res = NextResponse.redirect(new URL("/dashboard?github=success", req.url));
+    res.cookies.delete(STATE_COOKIE);
+    return res;
+  } catch (e) {
+    console.error("OAuth callback failed", e);
+    const res = NextResponse.redirect(new URL("/dashboard?github=error", req.url));
+    res.cookies.delete(STATE_COOKIE);
+    return res;
+  }
 }
