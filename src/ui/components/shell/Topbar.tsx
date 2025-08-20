@@ -8,15 +8,17 @@ export default function Topbar({
   onSave,
   onPublish,
   onOpenAI,
+  onRepoSelect,
 }: {
   onSave: () => void;
   onPublish: () => void;
   onOpenAI: () => void;
+  onRepoSelect?: (owner: string, repo: string) => void;
 }) {
   return (
     <div className="h-12 border-b flex items-center justify-between px-3">
       <div className="flex items-center gap-2">
-        <RepoPicker />
+        <RepoPicker onSelect={onRepoSelect} />
         <BranchSelect />
       </div>
       <div className="flex items-center gap-2">
