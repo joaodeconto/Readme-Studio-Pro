@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { githubApp } from "@/lib/github/app";
+import { prisma } from "@/lib/db/client";
 
 export const runtime = "nodejs";
 
@@ -24,6 +25,22 @@ export async function GET(_: NextRequest, { params }: { params: { owner: string;
 }
 
 async function findInstallationIdForRepo(owner: string, repo: string): Promise<number> {
-  // TODO: consultar o banco
-  throw new Error("Not implemented");
+  const link = await prisma.repoLink.findFirst({ where: { owner, repo } });
+  if (link) return link.installationId;
+
+  try {
+    const { data } = await githubApp.octokit.request(
+      "GET /repos/{owner}/{repo}/installation",
+      { owner, repo }
+    );
+    await prisma.repoLink.create({
+      data: { owner, repo, installationId: data.id },
+    });
+    return data.id;
+  } catch (e: any) {
+    if (e.status === 404) {
+      throw new Error(`No installation found for ${owner}/${repo}`);
+    }
+    throw e;
+  }
 }
