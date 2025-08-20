@@ -18,9 +18,18 @@ async function getJSON(path, params) {
   return r.json();
 }
 
+/**
+ * Fetch GitHub App installations available to the user.
+ * @returns {Promise<{ items: { installation_id: number; account_login?: string }[] }>}
+ */
 export const discoverInstallations = () =>
   getJSON('/discover/installations');
 
+/**
+ * Fetch repositories for a given installation.
+ * @param {number} installation_id - GitHub App installation ID.
+ * @returns {Promise<{ items: { owner: string; repo: string; full_name: string }[] }>}
+ */
 export const discoverRepos = (installation_id) =>
   getJSON('/discover/repos', { installation_id });
 
