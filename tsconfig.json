@@ -8,7 +8,7 @@
       "react",
       "react-dom"
     ],
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "plugins": [
       {
         "name": "next"
