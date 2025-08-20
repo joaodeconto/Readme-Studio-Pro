@@ -102,14 +102,14 @@ export function parseRepoSpec(spec){
     const u=new URL(spec);
     if(/raw\.githubusercontent\.com$/.test(u.hostname)) return { rawUrl:u.href };
     if(/github\.com$/.test(u.hostname)){
-      const p=u.pathname.split('/').filter(Boolean); const owner=p[0], repo=p[1];
+      const p=u.pathname.split('/').filter(Boolean); const owner=p[0], repo=p[1]?.replace(/\.git$/,'');
       if(!owner||!repo) return null;
       if(p[2]==='blob'||p[2]==='tree'){ const branch=p[3]; const path=p.slice(4).join('/'); return { owner, repo, branch, path }; }
       return { owner, repo };
     }
   }catch{}
   const m=spec.match(/^([\w.-]+)\/([\w.-]+)(?:@([^:]+))?(?::(.+))?$/);
-  return m ? { owner:m[1], repo:m[2], branch:m[3], path:m[4] } : null;
+  return m ? { owner:m[1], repo:m[2].replace(/\.git$/,''), branch:m[3], path:m[4] } : null;
 }
 
 export async function fetchReadme(spec,{forceRaw=false, token=getToken()}={}){

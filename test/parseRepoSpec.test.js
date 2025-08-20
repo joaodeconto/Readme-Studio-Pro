@@ -29,6 +29,30 @@ test('parse https://github.com/owner/repo', () => {
   assert.strictEqual(spec.path, undefined);
 });
 
+test('parse https://github.com/owner/repo.git', () => {
+  const spec = parseRepoSpec('https://github.com/owner/repo.git');
+  assert.strictEqual(spec.owner, 'owner');
+  assert.strictEqual(spec.repo, 'repo');
+  assert.strictEqual(spec.branch, undefined);
+  assert.strictEqual(spec.path, undefined);
+});
+
+test('parse owner/repo.git', () => {
+  const spec = parseRepoSpec('owner/repo.git');
+  assert.strictEqual(spec.owner, 'owner');
+  assert.strictEqual(spec.repo, 'repo');
+  assert.strictEqual(spec.branch, undefined);
+  assert.strictEqual(spec.path, undefined);
+});
+
+test('parse owner/repo.git@main', () => {
+  const spec = parseRepoSpec('owner/repo.git@main');
+  assert.strictEqual(spec.owner, 'owner');
+  assert.strictEqual(spec.repo, 'repo');
+  assert.strictEqual(spec.branch, 'main');
+  assert.strictEqual(spec.path, undefined);
+});
+
 test('parse raw.githubusercontent URL', () => {
   const url = 'https://raw.githubusercontent.com/owner/repo/main/README.md';
   const spec = parseRepoSpec(url);
