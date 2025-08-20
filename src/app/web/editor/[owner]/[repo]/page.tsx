@@ -22,9 +22,43 @@ export default function EditorPage() {
   const editorRef = useRef<EditorView>(new EditorView);
   const [syncState, setSyncState] = useState<'idle' | 'saving' | 'error'>('idle');
   const [error, setError] = useState<string>();
-  const fileSha = useRef<string>(''); // TODO: preencher com SHA real do README
+  const fileSha = useRef<string>('');
   const updateFile = useUpdateFile();
   const createPR = useCreatePR();
+
+  // Carrega README e SHA inicial
+  useEffect(() => {
+    const load = async () => {
+      if (!owner || !repo) return;
+      try {
+        const res = await fetch(
+          `/api/github/file?owner=${owner}&repo=${repo}&path=${encodeURIComponent(
+            'README.md'
+          )}`
+        );
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          const msg =
+            res.status === 404
+              ? 'README não encontrado.'
+              : err.error || 'Falha ao carregar README.';
+          setError(msg);
+          setSyncState('error');
+          return;
+        }
+        const data = await res.json();
+        setContent(atob(data.content));
+        fileSha.current = data.sha;
+        setDirty(false);
+        setError(undefined);
+        setSyncState('idle');
+      } catch (e: any) {
+        setError('Falha ao carregar README.');
+        setSyncState('error');
+      }
+    };
+    load();
+  }, [owner, repo, setContent, setDirty]);
 
   // Autosave local (offline-tolerant)
   useEffect(() => {
