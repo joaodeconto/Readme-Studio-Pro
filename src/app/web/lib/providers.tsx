@@ -7,11 +7,14 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 
 if (typeof window !== 'undefined') {
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY || '', {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
-    capture_pageview: true,
-    capture_pageleave: true,
-  });
+  const token = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+  if (token) {
+    posthog.init(token, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
+      capture_pageview: true,
+      capture_pageleave: true,
+    });
+  }
 }
 
 export default function Providers({ children }: { children: ReactNode }) {

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"node src/app/api/server.js\" \"next dev\"",
+    "dev": "next dev",
     "test": "node --test",
     "start": "next start",
     "build": "next build",
@@ -40,7 +40,8 @@
     "remark-breaks": "latest",
     "remark-gfm": "latest",
     "zod": "latest",
-    "zustand": "latest"
+    "zustand": "latest",
+    "@prisma/client": "latest"
   },
   "devDependencies": {
     "@testing-library/react": "latest",
@@ -56,6 +57,7 @@
     "postcss": "latest",
     "tailwindcss": "latest",
     "typescript": "5.9.2",
-    "vitest": "latest"
+    "vitest": "latest",
+    "prisma": "latest"
   }
 }

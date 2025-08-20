@@ -22,6 +22,8 @@ Este guia explica como publicar o Readme Studio Pro em um ambiente de produção
    Crie um arquivo `.env` com as chaves necessárias. Exemplo:
    ```env
    READMESTUDIO_BACKEND_URL=http://localhost:3001
+   NEXT_PUBLIC_POSTHOG_KEY=SEU_TOKEN_DO_POSTHOG
+   NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
    ```
 4. **Gerar build de produção**
    ```bash

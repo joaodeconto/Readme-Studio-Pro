@@ -1,5 +1,1 @@
-import { redirect } from 'next/navigation';
-
-export default function Page() {
-  redirect('/web');
-}
+export { default } from './(marketing)/page';
