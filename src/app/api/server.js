@@ -10,8 +10,8 @@ import { Octokit } from 'octokit';
 import { createAppAuth } from '@octokit/auth-app';
 
 // Utils do projeto
-import { buildTOC, wrapTOC, applyTOCBlock } from '../utils/toc.js';
-import { lintMarkdown, lintLinksAndImages } from '../utils/lint.js';
+import { buildTOC, wrapTOC, applyTOCBlock } from '../../utils/toc.js';
+import { lintMarkdown, lintLinksAndImages } from '../../utils/lint.js';
 
 // -----------------------------------------------------------------------------
 // Helpers

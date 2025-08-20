@@ -1,12 +1,5 @@
 import { githubSlugify as slug } from './githubSlug.js';
-
-// Use local package in Node environments and a CDN in the browser.
-// `window` is undefined in Node, so we can decide at runtime.
-const { default: MarkdownIt } = await import(
-  typeof window === 'undefined'
-    ? 'markdown-it'
-    : 'https://esm.sh/markdown-it@14.1.0'
-);
+import {MarkdownIt} from 'markdown-it';
 
 const mdParser = new MarkdownIt();
 

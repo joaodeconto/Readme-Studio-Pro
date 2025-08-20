@@ -4,13 +4,52 @@
   "type": "module",
   "scripts": {
     "dev": "node ./src/app/server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
+    "@codemirror/lang-markdown": "latest",
+    "@codemirror/view": "latest",
     "@fastify/cors": "^11.1.0",
+    "@opentelemetry/api": "latest",
+    "@sentry/nextjs": "latest",
+    "@tanstack/react-query": "latest",
+    "@uiw/react-codemirror": "latest",
     "dotenv": "^17.2.1",
     "fastify": "^5.5.0",
+    "framer-motion": "latest",
+    "grep": "^0.1.0",
+    "i18next": "latest",
+    "lucide-react": "latest",
     "markdown-it": "^14.1.0",
-    "octokit": "^5.0.3"
+    "next": "latest",
+    "octokit": "^5.0.3",
+    "pg": "^8.16.3",
+    "posthog-js": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-hook-form": "latest",
+    "react-i18next": "latest",
+    "react-markdown": "latest",
+    "remark-breaks": "latest",
+    "remark-gfm": "latest",
+    "remark-slug": "latest",
+    "zod": "latest",
+    "zustand": "latest"
+  },
+  "devDependencies": {
+    "@testing-library/react": "latest",
+    "@testing-library/user-event": "latest",
+    "@types/connect": "^3.4.38",
+    "@types/mysql": "^2.15.27",
+    "@types/pg": "^8.15.5",
+    "@types/pg-pool": "^2.0.6",
+    "@types/tedious": "^4.0.14",
+    "autoprefixer": "latest",
+    "playwright": "latest",
+    "postcss": "latest",
+    "tailwindcss": "latest",
+    "vitest": "latest"
   }
 }
