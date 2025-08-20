@@ -6,10 +6,12 @@ export const state = {
     repo: '',
     ref: 'main',
     readme_path: 'README.md',
-    message: 'docs: atualiza README (TOC)'
+    message: 'docs: atualiza README (TOC)',
+    base_sha: '',           // SHA do README carregado
   },
   analysis: null,        // resposta de /analisar (findings, preview, base_sha)
   pr: null,              // resposta de /propor-pr
+  original_readme: '',   // conteúdo original carregado
 };
 
 export function setInput(key, value) {
