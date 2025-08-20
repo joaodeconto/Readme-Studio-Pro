@@ -9,8 +9,8 @@ export async function fetchFileContent(owner: string, repo: string, path: string
 }
 
 export function useUpdateFile() {
-  return useMutation(
-    async ({
+  return useMutation({
+    mutationFn: async ({
       owner,
       repo,
       path,
@@ -34,23 +34,21 @@ export function useUpdateFile() {
       if (!res.ok) throw new Error('Falha ao atualizar ficheiro');
       return res.json();
     },
-    {
-      onMutate: async () => {
-        // Lógica para mostrar estado "saving…"
-      },
-      onError: (err, variables, context) => {
-        // Lógica para rollback (se necessário)
-      },
-      onSuccess: (data) => {
-        // Atualize sha e estado de sincronização aqui
-      },
-    }
-  );
+    onMutate: async () => {
+      // Lógica para mostrar estado "saving…"
+    },
+    onError: (err, variables, context) => {
+      // Lógica para rollback (se necessário)
+    },
+    onSuccess: (data) => {
+      // Atualize sha e estado de sincronização aqui
+    },
+  });
 }
 
 export function useCreateBranch() {
-  return useMutation(
-    async ({
+  return useMutation({
+    mutationFn: async ({
       owner,
       repo,
       newBranch,
@@ -68,13 +66,13 @@ export function useCreateBranch() {
       });
       if (!res.ok) throw new Error('Falha ao criar branch');
       return res.json();
-    }
-  );
+    },
+  });
 }
 
 export function useCreatePR() {
-  return useMutation(
-    async ({
+  return useMutation({
+    mutationFn: async ({
       owner,
       repo,
       title,
@@ -96,6 +94,6 @@ export function useCreatePR() {
       });
       if (!res.ok) throw new Error('Falha ao criar PR');
       return res.json();
-    }
-  );
+    },
+  });
 }
