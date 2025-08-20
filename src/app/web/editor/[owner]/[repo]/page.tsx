@@ -59,9 +59,9 @@ export default function EditorPage(props: { params: Promise<{ owner: string; rep
       catch {
 
       }
-    }
+    };
     load();
-  }, [owner, repo, setContent, setDirty]);
+  }, [owner, repo]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onSave = () => {
     if (!owner || !repo) {
