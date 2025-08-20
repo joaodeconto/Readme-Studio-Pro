@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { githubApp } from "@/lib/github/app";
+import { prisma } from "@/lib/db/client";
 
 export const runtime = "nodejs";
 
@@ -19,11 +20,16 @@ export async function GET(_: NextRequest, { params }: { params: { owner: string;
     });
   } catch (e: any) {
     const status = e.status || 500;
-    return NextResponse.json({ error: e.message }, { status });
+    console.error("[repos/readme]", e);
+    return NextResponse.json({ error: "Internal error" }, { status });
   }
 }
 
 async function findInstallationIdForRepo(owner: string, repo: string): Promise<number> {
-  // TODO: consultar o banco
-  throw new Error("Not implemented");
+  const link = await prisma.repoLink.findFirst({
+    where: { owner, repo },
+    select: { installationId: true },
+  });
+  if (!link) throw new Error("Installation not found for repository");
+  return link.installationId;
 }
