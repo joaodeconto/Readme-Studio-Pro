@@ -97,6 +97,13 @@ export function bindUI() {
 
   $('#btn-connect')?.addEventListener('click', handleWizard);
 
+  $('#btn-demo')?.addEventListener('click', () => {
+    mdEl.value = '# Projeto Demo\n\nComece a escrever o README aqui...';
+    update();
+    setStep(2);
+    toast('Modo demo iniciado ✅', 'ok');
+  });
+
   // analisar
   $('#btn-analisar')?.addEventListener('click', async () => {
     try {
