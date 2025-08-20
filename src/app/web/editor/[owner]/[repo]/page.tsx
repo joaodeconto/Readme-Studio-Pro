@@ -1,10 +1,10 @@
-import Topbar from '../../../../../../src/ui/components/shell/Topbar.jsx';
-import StatusBar from '../../../../../ui/components/shell/StatusBar';
-import MdEditor from '../../../../../ui/components/editor/MdEditor';
-import MdPreview from '../../../../../ui/components/editor/MdPreview';
-import Inspector from '../../../../../ui/components/editor/Inspector';
-import { useEditorStore } from '../../../../../ui/state/editor';
-import { useRepoStore } from '../../../../../ui/state/repo';
+import Topbar from '@ui/components/shell/Topbar';
+import StatusBar from '@ui/components/shell/StatusBar';
+import MdEditor from '@ui/components/editor/MdEditor';
+import MdPreview from '@ui/components/editor/MdPreview';
+import Inspector from '@ui/components/editor/Inspector';
+import { useEditorStore } from '@ui/state/editor';
+import { useRepoStore } from '@ui/state/repo';
 import { useEffect, useState } from 'react';
 
 export default function EditorPage() {

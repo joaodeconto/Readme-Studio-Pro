@@ -1,6 +1,6 @@
 "use client";
-import { useRepoStore } from '../../state/repo';
-import Button from '../ui/button';
+import { useRepoStore } from '@ui/state/repo';
+import Button from '@ui/components/ui/button';
 
 export default function RepoPicker() {
   const { owner, repo, set } = useRepoStore();

@@ -9,8 +9,8 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@ui/*": ["packages/ui/src/*"],
-      "@lib/*": ["packages/lib/src/*"]
+      "@ui/*": ["src/ui/*"],
+      "@lib/*": ["src/lib/*"]
     }
   }
 }
