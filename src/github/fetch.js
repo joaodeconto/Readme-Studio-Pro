@@ -1,5 +1,6 @@
 import { log } from '../utils/log.js';
 import { BACKEND_URL } from './config.js';
+import { getToken } from './auth.js';
 
 
 async function safeFetch(input, init){
@@ -10,7 +11,9 @@ async function safeFetch(input, init){
 async function getJSON(path, params) {
   const url = new URL(`${BACKEND_URL}${path}`);
   if (params) Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
-  const r = await safeFetch(url, { method: 'GET' });
+  const token = getToken();
+  const headers = token ? { 'Authorization': `Bearer ${token}` } : undefined;
+  const r = await safeFetch(url, { method: 'GET', headers });
   if (!r.ok) throw new Error(`HTTP ${r.status} ${r.statusText}`);
   return r.json();
 }
@@ -31,9 +34,12 @@ function b64ToText(b64){
 }
 
 async function postJSON(path, body) {
+  const token = getToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
   const r = await safeFetch(`${BACKEND_URL}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(body)
   });
   if (!r.ok) {
@@ -106,7 +112,7 @@ export function parseRepoSpec(spec){
   return m ? { owner:m[1], repo:m[2], branch:m[3], path:m[4] } : null;
 }
 
-export async function fetchReadme(spec,{forceRaw=false, token}={}){
+export async function fetchReadme(spec,{forceRaw=false, token=getToken()}={}){
   if(!spec) throw new Error('Especificação inválida');
 
   if(spec.rawUrl){

@@ -80,6 +80,7 @@ export function bindUI() {
       if (!res) return;
       const { installation_id, owner, repo, ref, readme_path, readme, base_sha } = res;
       Object.assign(state.inputs, { installation_id, owner, repo, ref, readme_path, base_sha });
+      state.original_readme = readme;
       mdEl.value = readme;
       update();
       toast("README carregado ✅", "ok");
@@ -114,9 +115,9 @@ export function bindUI() {
       // preview antes/depois
       const preview = data.preview?.new_content_utf8 || '';
       $('#preview-after').innerHTML = mdToHtml(preview);
-      // diff entre original e proposto
+      // diff entre original carregado e conteúdo atual
       const dmp = new DiffMatchPatch();
-      const diff = dmp.diff_main(mdEl.value, preview);
+      const diff = dmp.diff_main(state.original_readme || '', mdEl.value);
       dmp.diff_cleanupSemantic(diff);
       if (diffView) diffView.innerHTML = dmp.diff_prettyHtml(diff);
       if (diffModal) diffModal.hidden = false;
