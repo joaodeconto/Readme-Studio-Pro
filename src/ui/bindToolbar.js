@@ -5,15 +5,13 @@ import { highlightAll } from '../render/highlight.js';
 import { applyEmojis } from '../features/emoji.js';
 import { buildTOC } from '../features/toc.js';
 import { toList, toCode, replaceSelection, getSelectionRanges } from '../features/insert.js';
-import { fetchReadme, parseRepoSpec } from '../github/fetch.js';
 import { TPL } from '../features/templates.js';
 import { attachHistory } from '../state/history.js';
 import { openWizard } from './wizard.js';
 import { lintMarkdown } from '../utils/lint.js';
-import { discoverInstallations, discoverRepos, discoverReadme, analisarRepo, proporPR } from '../github/fetch.js';
-import { state, setInput, setAnalysis, setPR } from '../state/store.js';
+import { analisarRepo, proporPR } from '../github/fetch.js';
+import { state, setAnalysis, setPR } from '../state/store.js';
 import DiffMatchPatch from 'https://esm.sh/diff-match-patch';
-import { startAuthFlow } from '../github/auth.js';
 
 
 function toast(msg, type = 'info') {
@@ -30,13 +28,11 @@ export function bindUI() {
   const stats = $('#stats');
   const useEmoji = $('#useEmoji');
   const bakeEmoji = $('#bakeEmoji');
-  const fetchBtn = $('#fetchGH');
   const diffModal = $('#diff-modal');
   const diffView = $('#diff-view');
   $('#btn-voltar')?.addEventListener('click', () => { diffModal.hidden = true; });
   const landing = $('#landing');
   const app = $('#app');
-  const btnImport = $('#landing-import');
   const btnCreate = $('#landing-create');
   const btnOpen = $('#landing-open');
   const defaultMd = `# Nome do Projeto\n\nBreve descrição…\n\n> [!TIP]\n> Use o painel à esquerda para inserir blocos prontos.\n`;
@@ -74,7 +70,7 @@ export function bindUI() {
     mdEl.hidden = !edit; prev.hidden = edit;
     if (!edit) update();
   }));
-  $("#btn-connect")?.addEventListener("click", async () => {
+  async function handleWizard() {
     try {
       const res = await openWizard();
       if (!res) return;
@@ -82,13 +78,17 @@ export function bindUI() {
       Object.assign(state.inputs, { installation_id, owner, repo, ref, readme_path });
       mdEl.value = readme;
       update();
-      toast("README carregado ✅", "ok");
+      hideLanding();
+      toast('README carregado ✅', 'ok');
     } catch (err) {
       console.error(err);
       const msg = err?.message === 'NETWORK_FAILURE' ? 'Falha de rede ao carregar README' : 'Falha ao carregar README';
-      toast(msg, "warn");
+      toast(msg, 'warn');
     }
-  });
+  }
+
+  $('#btn-connect')?.addEventListener('click', handleWizard);
+  $('#landing-import')?.addEventListener('click', handleWizard);
 
   // analisar
   $('#btn-analisar')?.addEventListener('click', async () => {
@@ -311,27 +311,6 @@ export function bindUI() {
 
 
 
-  // Lê README do GitHub ou caminho RAW
-  fetchBtn?.addEventListener('click', async () => {
-    const specStr = ($('#ghInput').value || '').trim();
-    if (!specStr) return alert('Cole owner/repo, URL do repositório ou RAW do README');
-    const old = fetchBtn.textContent; fetchBtn.textContent = 'Lendo…'; fetchBtn.disabled = true;
-    try {
-      const spec = parseRepoSpec(specStr);
-      log('parse spec', specStr, spec);
-      const txt = await fetchReadme(spec, { forceRaw: !!$('#forceRaw')?.checked });
-      if (!txt?.trim()) throw new Error('README vazio ou não encontrado');
-      mdEl.value = txt; update(); hideLanding();
-      log('README carregado. tamanho=', txt.length);
-    } catch (err) {
-      console.error(err); log('Erro', err?.message || String(err));
-      const msg = err?.message === 'NETWORK_FAILURE' ? 'Falha de rede ao ler o README.' : 'Não consegui ler o README: ' + (err?.message || err);
-      alert(msg);
-    } finally {
-      fetchBtn.textContent = old; fetchBtn.disabled = false;
-    }
-  });
-
   function renderLint(res) {
     const panel = $('#lintPanel');
     const list = $('#lintList');
@@ -362,23 +341,6 @@ export function bindUI() {
   btnOpen?.addEventListener('click', () => {
     hideLanding();
     $('#open').click();
-  });
-
-  btnImport?.addEventListener('click', async () => {
-    await startAuthFlow();
-    const specStr = prompt('owner/repo · owner/repo@branch · URL do repo · URL RAW do README');
-    if (!specStr) return;
-    try {
-      const spec = parseRepoSpec(specStr);
-      const txt = await fetchReadme(spec, { forceRaw: !!$('#forceRaw')?.checked });
-      if (!txt?.trim()) throw new Error('README vazio ou não encontrado');
-      mdEl.value = txt; update();
-      hideLanding();
-    } catch (err) {
-      console.error(err);
-      const msg = err?.message === 'NETWORK_FAILURE' ? 'Falha de rede ao ler o README.' : 'Não consegui ler o README: ' + (err?.message || err);
-      alert(msg);
-    }
   });
 
   update();
