@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyGitHubWebhook } from "@/lib/github/verify";
+import { prisma } from "@/lib/db/client";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -20,11 +21,35 @@ export async function POST(req: NextRequest) {
 
   const payload = JSON.parse(rawBody);
 
-  if (event === "installation") {
-    // TODO: persist installation.id
+  if (payload.installation?.id) {
+    await prisma.installation.upsert({
+      where: { installationId: payload.installation.id },
+      update: {
+        accountLogin: payload.installation.account?.login || "",
+        accountId: payload.installation.account?.id || 0,
+      },
+      create: {
+        installationId: payload.installation.id,
+        accountLogin: payload.installation.account?.login || "",
+        accountId: payload.installation.account?.id || 0,
+      },
+    });
   }
-  if (event === "push") {
-    // TODO: handle push events
+
+  switch (event) {
+    case "push":
+      console.log(
+        "push",
+        payload.repository?.full_name,
+        payload.head_commit?.id,
+        payload.head_commit?.message
+      );
+      break;
+    case "installation":
+      console.log("installation", payload.installation?.id);
+      break;
+    default:
+      break;
   }
 
   return NextResponse.json({ received: true });
