@@ -4,5 +4,8 @@ export function verifyGitHubWebhook(body: string, signature256: string | null, s
   if (!signature256) return false;
   const hmac = crypto.createHmac("sha256", secret);
   const digest = "sha256=" + hmac.update(body).digest("hex");
+  if (digest.length !== signature256.length) {
+    return false;
+  }
   return crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signature256));
 }
