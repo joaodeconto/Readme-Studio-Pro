@@ -86,7 +86,7 @@ async function tryRaw(owner,repo,branches=['main','master','dev','stable'],paths
 }
 
 async function discoverDefaultBranch(owner,repo,token){
-  const {ok,status,error}=await fetchJSON(`https://api.github.com/repos/${owner}/${repo}`, token);
+  const { ok, status, data, error } = await fetchJSON(`https://api.github.com/repos/${owner}/${repo}`, token);
   if(error==='NETWORK_FAILURE') throw new Error('NETWORK_FAILURE');
   if(!ok){ if(status===404) throw new Error('NOT_FOUND_REPO_OR_PRIVATE'); throw new Error('Falha ao obter repo'); }
   // nota: não precisamos do default_branch aqui se fallback funcionar
@@ -179,3 +179,5 @@ export async function fetchReadme(spec,{forceRaw=false, token=getToken()}={}){
 
   throw new Error('Entrada não reconhecida');
 }
+
+export const __TESTING__ = { discoverDefaultBranch };

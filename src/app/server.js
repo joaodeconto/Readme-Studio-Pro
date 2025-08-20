@@ -40,18 +40,16 @@ function proposeReadmeWithTOC(originalMd) { // gera TOC + aplica bloco idempoten
 
 async function validateRelPaths(octo, { owner, repo, ref, readmeDir, items }) {
   // Valida links/imagens relativos com Contents API
-  const results = [];
-  for (const it of items) {
+  const base = readmeDir ? `${readmeDir.replace(/\\/g, '/').replace(/\/$/, '')}/` : '';
+  const checks = items.map(it => {
     const rel = it.url || it.href || it.src;
-    const joined = (readmeDir ? `${readmeDir.replace(/\\/g, '/').replace(/\/$/, '')}/` : '') + rel.replace(/^\.\//, '');
-    try {
-      await octo.request('GET /repos/{owner}/{repo}/contents/{path}', { owner, repo, path: joined, ref });
-      results.push({ ...it, ok: true, resolved: joined });
-    } catch {
-      results.push({ ...it, ok: false, resolved: joined });
-    }
-  }
-  return results;
+    const joined = base + rel.replace(/^\.\//, '');
+    return octo
+      .request('GET /repos/{owner}/{repo}/contents/{path}', { owner, repo, path: joined, ref })
+      .then(() => ({ ...it, ok: true, resolved: joined }))
+      .catch(() => ({ ...it, ok: false, resolved: joined }));
+  });
+  return Promise.all(checks);
 }
 
 // -----------------------------------------------------------------------------
