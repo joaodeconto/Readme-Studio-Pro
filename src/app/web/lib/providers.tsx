@@ -1,6 +1,7 @@
 "use client";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode, useState } from 'react';
+import type { ReactNode} from 'react';
+import { useState } from 'react';
 import { PostHogProvider } from 'posthog-js/react';
 import posthog from 'posthog-js';
 import { I18nextProvider } from 'react-i18next';

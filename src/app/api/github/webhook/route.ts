@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 import { verifyGitHubWebhook } from "@/lib/github/verify";
 import { prisma } from "@/lib/db/client";
 

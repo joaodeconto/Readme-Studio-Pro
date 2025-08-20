@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 const CodeMirror = dynamic(() => import('@uiw/react-codemirror'), { ssr: false });
 import { markdown } from '@codemirror/lang-markdown';
 import { EditorView } from '@codemirror/view';
-import { MutableRefObject } from 'react';
+import type { MutableRefObject } from 'react';
 
 export default function MdEditor({
   value,
