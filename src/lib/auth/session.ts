@@ -14,7 +14,7 @@ const SESSION_COOKIE = "session_user_id";
  * available.
  */
 export async function getSessionUser(): Promise<SessionUser | null> {
-  const id = cookies().get(SESSION_COOKIE)?.value;
+  const store = await cookies();                 // 👈 await obrigatório no Next 15
+  const id = store.get(SESSION_COOKIE)?.value ?? null;
   return id ? { id: Number(id) } : null;
 }
-

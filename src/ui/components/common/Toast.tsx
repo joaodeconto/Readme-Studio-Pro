@@ -1,29 +1,32 @@
 "use client";
 import { useEffect } from 'react';
-import {
-  useToastStore,
-  dismissToast,
-  Toast,
-  ToastVariant,
-} from '@ui/state/toast';
+import { useToastStore, dismissToast } from '@ui/state/toast';
+import type { Toast } from '@ui/state/toast';
 
-const variantStyles: Record<ToastVariant | undefined, string> = {
+// 1) declare um mapa “fechado” e com uma chave default
+const variantStyles = {
   info: 'bg-accent text-white',
   success: 'bg-success text-white',
   warn: 'bg-accent text-white',
   error: 'bg-danger text-white',
-  undefined: 'bg-accent text-white',
-};
+  default: 'bg-accent text-white',
+} as const;
+
+type VariantKey = keyof typeof variantStyles; // "info" | "success" | "warn" | "error" | "default"
 
 function ToastItem({ t }: { t: Toast }) {
   useEffect(() => {
     const id = setTimeout(() => dismissToast(t.id), t.duration ?? 3000);
     return () => clearTimeout(id);
   }, [t.id, t.duration]);
+
+  // 2) normalize a variant antes de indexar (evita undefined)
+  const key = (t.variant ?? 'default') as VariantKey;
+
   return (
     <div
       role="status"
-      className={`pointer-events-auto flex items-start gap-2 rounded px-4 py-2 shadow-2 ${variantStyles[t.variant]}`}
+      className={`pointer-events-auto flex items-start gap-2 rounded px-4 py-2 shadow-2 ${variantStyles[key]}`}
     >
       <span className="flex-1">{t.message}</span>
       <button
