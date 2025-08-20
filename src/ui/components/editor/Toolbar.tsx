@@ -1,7 +1,7 @@
 "use client";
 import Button from '../ui/button';
-import { MutableRefObject } from 'react';
-import { EditorView } from '@codemirror/view';
+import type { MutableRefObject } from 'react';
+import type { EditorView } from '@codemirror/view';
 import { buildTOC } from '../../../features/toc.js';
 import { useEditorStore } from '../../state/editor';
 
