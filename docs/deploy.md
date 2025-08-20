@@ -33,7 +33,11 @@ Este guia explica como publicar o Readme Studio Pro em um ambiente de produção
    ```bash
    npm start
    ```
-6. **Deploy no Vercel (opcional)**
+6. **Testar endpoint de saúde**
+   ```bash
+   curl http://localhost:3000/api/health
+   ```
+7. **Deploy no Vercel (opcional)**
    - Instale a CLI: `npm i -g vercel`
    - Execute `vercel` e siga as instruções.
 
