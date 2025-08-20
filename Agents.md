@@ -1,311 +1,308 @@
-# Agent Spec — Readme Studio Pro (Codex/GPT‑5)
+# Codex Worklist — Mass Fix (Next 15, ESLint/TS)
 
-> **Uso**: cole isto como *System/Developer Prompt* para o seu agente (Codex/Assistants/Responses API). Foi escrito para implementar o plano de migração e o fluxo do Readme Studio Pro, com passos lentos, código modular e commits pequenos.
-
----
-
-## 1) SYSTEM — Papel, Objetivo e Limites
-
-Você é um **Agente de Eng. de Software** focado em **Next.js (App Router)** com integração a **GitHub App**. Seu objetivo é **migrar** o projeto para Next.js, implementar **rotas API**, **webhooks**, **persistência** e o **Editor/Preview** do README, seguindo o *User Flow* anexo. Trabalhe com **commits pequenos** e **PRs descritivos**. Explique cada decisão brevemente no final de cada resposta.
-
-**Limites e Estilo**
-
-* Passos lentos (step-by-step), explicações claras.
-* Código **bem documentado** e **modular** (arquivos pequenos, libs/coisas em `lib/*`).
-* Nunca altere mais de um contexto por PR (ex.: não misture DB com UI).
-* Se algo estiver ambíguo, proponha **duas opções** e escolha uma com justificativa.
-
-**Critérios de pronto** (Definition of Done)
-
-* Rotas 404 eliminadas; handlers com `runtime = "nodejs"` quando necessário.
-* Webhooks verificados por HMAC (raw body) e logados.
-* `installationId` persistido; leitura de README funciona em repositório privado.
-* Editor renderiza MD + Preview, com TOC/Emojis opcional.
-* Fluxo Commit → PR com título/descrição padronizados.
+> **Objetivo**: permitir que o agente (Codex/GPT‑5) resolva **em lote** os problemas de build/tipo do Next.js 15, ESLint e TS, com passos auditáveis e critérios de aceite. Use **1 PR por grupo** para facilitar revisão.
 
 ---
 
-## 2) DEVELOPER — Backlog Alinhado ao Plano
+## 0) Pré‑voo (decisão estrutural)
 
-Implemente em **ordem** (uma PR por item):
+* [ ] **Escolher 1 app root**: manter **`src/app`** **ou** `app` (apenas um).
 
-1. **Bootstrap Next.js**
+  * **Detectar duplicatas**:
 
-   * Criar estrutura de pastas mínima e páginas stub: `app/dashboard`, `app/editor/[owner]/[repo]`, `app/api/health`.
-   * Adicionar `next.config.js`, `env.d.ts`, `package.json` saneado.
+    ```bash
+    git ls-files 'app/**/page.*' 'src/app/**/page.*'
+    ```
+  * **Ação**: remover duplicatas no root descartado.
+* [ ] Limpar config inválida do Next:
 
-2. **GitHub App (lib/github)**
+  * Remover `experimental.serverActions` do `next.config.*` (já estável no 15).
 
-   * `app.ts`: inicializa App com `GITHUB_APP_PRIVATE_KEY_B64`.
-   * `tokens.ts`: helper para obter `installation token`.
-   * `verify.ts`: verificação HMAC SHA‑256 (timing safe compare).
-
-3. **Webhook**
-
-   * `POST /api/github/webhook`: ler **raw body**, validar assinatura, logar `installation` e `push`.
-
-4. **DB/Prisma**
-
-   * Modelos: `Installation`, `RepoLink`. Client/config.
-   * Salvar `installationId` em `installation.created`.
-
-5. **Endpoint README**
-
-   * `GET /api/repos/[owner]/[repo]/readme`: usar `installationId` para solicitar README (mediaType raw) e devolver `text/markdown`.
-
-6. **Editor + Preview**
-
-   * Layout 3 colunas; paleta de blocos; TOC com emojis (toggle).
-   * Lint básico (anchors/links/imagens) — stub OK.
-
-7. **Commit/PR Flow**
-
-   * Preferir branch + PR; mensagens estilo Conventional Commits.
-   * Toast com link da PR (stub OK).
-
-8. **Observabilidade**
-
-   * PostHog opcional (só inicia se houver chave).
-   * `GET /api/health` retorna { ok: true }.
+**Aceite**: `pnpm build` não acusa 404 de rotas nem warning de config experimental.
 
 ---
 
-## 3) Ferramentas/Recursos do Agente (Function Calling)
+## 1) ESLint base + regra para type‑imports
 
-> Adapte os nomes aos *tools* disponíveis. O importante é a **forma** dos argumentos e o fluxo de uso.
+**Erro alvo**: `Failed to load config "next/core-web-vitals"` / imports de tipo sem `import type`.
 
-### 3.1 `fs.write` — Criar/atualizar arquivo
+* [ ] Garantir dev‑deps:
 
-```json
-{
-  "name": "fs.write",
-  "description": "Cria ou atualiza um arquivo em caminho relativo ao repo",
-  "parameters": {
-    "type": "object",
-    "properties": {
-      "path": { "type": "string" },
-      "content": { "type": "string" }
+  ```bash
+  pnpm add -D eslint eslint-config-next @typescript-eslint/parser @typescript-eslint/eslint-plugin
+  ```
+* [ ] Criar/ajustar **.eslintrc.cjs**:
+
+  ```js
+  // .eslintrc.cjs
+  module.exports = {
+    root: true,
+    extends: ['next/core-web-vitals', 'plugin:@typescript-eslint/recommended'],
+    parser: '@typescript-eslint/parser',
+    plugins: ['@typescript-eslint'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'separate-type-imports' }],
     },
-    "required": ["path", "content"]
-  }
-}
-```
+    ignorePatterns: ['.next/', 'node_modules/', 'dist/'],
+  };
+  ```
+* [ ] Rodar lint e autofix:
 
-### 3.2 `git.commit`
+  ```bash
+  pnpm lint || pnpm eslint . --ext .ts,.tsx --fix
+  ```
 
-```json
-{
-  "name": "git.commit",
-  "description": "Cria commit assinado com mensagem",
-  "parameters": {
-    "type": "object",
-    "properties": {
-      "message": { "type": "string" },
-      "files": { "type": "array", "items": { "type": "string" } }
-    },
-    "required": ["message", "files"]
-  }
-}
-```
-
-### 3.3 `git.pr.create`
-
-```json
-{
-  "name": "git.pr.create",
-  "description": "Abre PR a partir de branch",
-  "parameters": {
-    "type": "object",
-    "properties": {
-      "title": { "type": "string" },
-      "body": { "type": "string" },
-      "base": { "type": "string" },
-      "head": { "type": "string" }
-    },
-    "required": ["title", "body", "base", "head"]
-  }
-}
-```
+**Aceite**: lint passa localmente; imports de tipos usam `import type`.
 
 ---
 
-## 4) Padrões de Arquitetura de Código
+## 2) Tipos do React e TSConfig
 
-* Use **`lib/github/*`** para tudo o que for Octokit/GitHub.
-* Handlers API em **`app/api/**/route.ts`** com `export const runtime = "nodejs"` quando usar `crypto`/Octokit.
-* MD Editor como **componente isolado** com props controladas (sem side effects globais).
-* Cada PR deve conter **README curta** no topo explicando o que mudou e como testar.
+**Erro alvo**: `Could not find a declaration file for module 'react'`.
+
+* [ ] Garantir dev‑deps:
+
+  ```bash
+  pnpm add -D @types/react@19 @types/react-dom@19
+  ```
+* [ ] Verificar `tsconfig.json`:
+
+  ```json
+  {
+    "compilerOptions": {
+      "jsx": "react-jsx"
+    }
+  }
+  ```
+
+**Aceite**: Type‑check não acusa falta de declarações do React.
 
 ---
 
-## 5) Variáveis de Ambiente (Checklist)
+## 3) Next 15 — `PageProps` e params **assíncronos**
 
-* `GITHUB_APP_ID`, `GITHUB_APP_CLIENT_ID`, `GITHUB_APP_CLIENT_SECRET`
-* `GITHUB_APP_WEBHOOK_SECRET`, `GITHUB_APP_PRIVATE_KEY_B64`
-* `DATABASE_URL`, `NEXT_PUBLIC_POSTHOG_KEY` (opcional)
+**Erros alvo**: `Type '{ params: { ... } }' does not satisfy 'PageProps'`.
 
-**Conversão PEM→Base64**
+* [ ] **Auditar pages dinâmicas** com `params` síncrono ou destructuring:
+
+  ```bash
+  rg -n --glob '!node_modules' --glob '!*.d.ts' \
+    'export default (async )?function Page\s*\(\s*\{?\s*params\s*:\s*\{' src/app app
+  ```
+* [ ] **Corrigir assinatura** para `PageProps` **ou** `params: Promise<...>` e usar `await`:
+
+  ```tsx
+  // Exemplo recomendado
+  export default async function Page(props: PageProps<'/web/editor/[owner]/[repo]'>) {
+    const { owner, repo } = await props.params;
+    return <EditorPage owner={owner} repo={repo} />;
+  }
+  ```
+* [ ] **Mover hooks** para componente **client**; pages ficam server (sem hooks). Ver §6.
+
+**Aceite**: nenhum match na auditoria; build não acusa PageProps.
+
+---
+
+## 4) Next 15 — `RouteContext` e params **assíncronos** em API routes
+
+**Erros alvo**: tipo inválido no segundo argumento do handler; acesso a `ctx.params` sem `await`.
+
+* [ ] Auditar handlers dinâmicos:
+
+  ```bash
+  rg -n --glob '!node_modules' --glob '!*.d.ts' \
+    'export async function (GET|POST|PUT|PATCH|DELETE)\(.*\{\s*params\s*:\s*\{' src/app app
+  rg -n 'ctx\.params\.' src/app app
+  ```
+* [ ] Corrigir assinatura e uso:
+
+  ```ts
+  export async function GET(_req: Request, ctx: RouteContext<'/api/repos/[owner]/[repo]/readme'>) {
+    const { owner, repo } = await ctx.params;
+    // ...
+  }
+  ```
+
+**Aceite**: nenhuma ocorrência de `ctx.params.` sem `await`.
+
+---
+
+## 5) Next 15 — `cookies()` / `headers()` são **Promises**
+
+**Erro alvo**: `Property 'get' does not exist on type 'Promise<ReadonlyRequestCookies>'`.
+
+* [ ] Auditar:
+
+  ```bash
+  rg -n "cookies\(\)\." src app
+  rg -n "headers\(\)\." src app
+  ```
+* [ ] Corrigir padrão:
+
+  ```ts
+  const c = await cookies();
+  const h = await headers();
+  ```
+
+**Aceite**: nenhuma chamada direta a `.get/.set` sem `await` prévio.
+
+---
+
+## 6) Hooks em `page.tsx` (App Router)
+
+**Risco**: páginas são Server por padrão; hooks devem ficar em Client Components.
+
+* [ ] Auditar hooks importados em pages:
+
+  ```bash
+  rg -n --glob '!node_modules' 'from\s+\'react\'\s*;?$' -C2 src/app app | rg 'use(State|Effect|Ref|Memo|Callback)'
+  ```
+* [ ] Padrão recomendado: **Server Page Wrapper** + **Client Shell**
+
+  ```tsx
+  // page.tsx (server)
+  export default async function Page(props: PageProps<'/web/editor/[owner]/[repo]'>) {
+    const { owner, repo } = await props.params;
+    return <EditorPage owner={owner} repo={repo} />;
+  }
+  // EditorPage.tsx (client)
+  'use client';
+  // ... hooks aqui
+  ```
+
+**Aceite**: nenhum hook em `page.tsx` sem `use client` / ou movido para Shell.
+
+---
+
+## 7) Type‑only imports (ex.: conflito `Toast`)
+
+**Erro alvo**: `Import 'X' conflicts with local value ... when 'isolatedModules' is enabled`.
+
+* [ ] Auditar ocorrências comuns:
+
+  ```bash
+  rg -n --glob '!node_modules' "import\s*\{[^}]*\bToast\b[^}]*\}\s*from\s*'@ui/state/toast'"
+  ```
+* [ ] Corrigir imports dividindo valor e tipo:
+
+  ```ts
+  import { useToastStore, dismissToast } from '@ui/state/toast';
+  import type { Toast, ToastVariant } from '@ui/state/toast';
+  ```
+* [ ] (Opcional) ESLint já reforça com `consistent-type-imports`.
+
+**Aceite**: sem conflitos de nome entre tipos e valores.
+
+---
+
+## 8) Indexação segura de variantes (ex.: `variantStyles[t.variant]`)
+
+**Erro alvo**: `Type 'undefined' cannot be used as an index type`.
+
+* [ ] Normalizar chave antes de indexar:
+
+  ```ts
+  const variantStyles = { info: '...', success: '...', warn: '...', error: '...', default: '...' } as const;
+  const key = (t.variant ?? 'default') as keyof typeof variantStyles;
+  const cls = variantStyles[key];
+  ```
+
+**Aceite**: nenhum uso de index com `| undefined`.
+
+---
+
+## 9) GitHub Contents API — **Union narrowing**
+
+**Erro alvo**: acesso a `data.content` sem checar `type`.
+
+* [ ] Verificar rota `/api/github/file` e similares.
+* [ ] Padrão correto:
+
+  ```ts
+  const { data } = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', { owner, repo, path, ref });
+  if (Array.isArray(data)) { /* dir */ }
+  else if (data.type === 'file') { /* usar data.content base64 */ }
+  else if (data.type === 'symlink' || data.type === 'submodule') { /* ... */ }
+  ```
+
+**Aceite**: nenhum acesso direto a `content` sem `type` check.
+
+---
+
+## 10) Scripts de auditoria (executar em CI e local)
+
+### 10.1 `scripts/audit-next15.sh`
 
 ```bash
-base64 -w0 my-github-app.private-key.pem > private_key.b64
+#!/usr/bin/env bash
+set -euo pipefail
+FAIL=0
+
+# Duplicatas de app roots
+if git ls-files 'app/**/page.*' | grep -q . && git ls-files 'src/app/**/page.*' | grep -q .; then
+  echo "❌ Duplicated app roots (app/ and src/app/)"; FAIL=1; fi
+
+# PageProps/params sync
+rg -n --glob '!node_modules' --glob '!*.d.ts' \
+  'export default (async )?function Page\s*\(\s*\{?\s*params\s*:\s*\{' src/app app && { echo "❌ Pages com params síncrono"; FAIL=1; } || true
+
+# RouteContext params sem await
+rg -n 'ctx\.params\.' src/app app && { echo "❌ ctx.params usado sem await"; FAIL=1; } || true
+
+# cookies()/headers() sem await
+rg -n 'cookies\(\)\.(get|set|delete)' src app && { echo "❌ cookies() sem await"; FAIL=1; } || true
+rg -n 'headers\(\)\.' src app && { echo "❌ headers() sem await"; FAIL=1; } || true
+
+# Type-only imports (Toast exemplo)
+rg -n "import\s*\{[^}]*\bToast\b[^}]*\}\s*from\s*'@ui/state/toast'" src app && { echo "❌ Toast import não-type"; FAIL=1; } || true
+
+exit $FAIL
 ```
 
----
-
-## 6) Aceite por Tarefa (Acceptance Criteria)
-
-**T1 Bootstrap**
-
-* `app/dashboard/page.tsx` e `app/editor/[owner]/[repo]/page.tsx` existem e renderizam.
-* `GET /api/health` → `{ ok: true }`.
-
-**T2 GitHub App**
-
-* `lib/github/app.ts` expõe `githubApp` configurado com private key via Base64.
-* `lib/github/tokens.ts` retorna `octokit` autenticado para instalação.
-
-**T3 Webhook**
-
-* `POST /api/github/webhook` valida `X-Hub-Signature-256` (HMAC) e loga payload.
-
-**T4 DB**
-
-* Schema Prisma com `Installation` e `RepoLink` migrado.
-* `installation.created` persiste `installationId`.
-
-**T5 README Endpoint**
-
-* `GET /api/repos/{owner}/{repo}/readme` retorna markdown bruto (`text/markdown`).
-
-**T6 Editor/Preview**
-
-* Layout 3 colunas; toggle Dark/Light; TOC com emojis (flag `?tocEmojis=1`).
-
-**T7 Commit/PR**
-
-* Ação que cria branch `feat/readme-editor` e abre PR com título e corpo padronizados.
+**Aceite**: script retorna `0` (verde) no CI.
 
 ---
 
-## 7) Guia de Resposta do Agente
+## 11) Pipeline de validação
 
-Em **cada rodada**, siga exatamente:
+* [ ] `pnpm install`
+* [ ] `pnpm lint --fix`
+* [ ] `pnpm build`
+* [ ] `bash scripts/audit-next15.sh`
+* [ ] `bash scripts/smoke.sh` (já disponível)
 
-1. **Plano** (3–6 bullets, o que fará agora).
-2. **Mudanças propostas** (arquivos → trechos curtos e explicados).
-3. **Chamadas de ferramenta** (em ordem).
-4. **Como testar** (comandos e URLs locais).
-5. **Riscos/Próximos passos**.
-
-Se faltar contexto (ex.: `installationId`), imprima um **placeholder** e explique como preencher.
+**Aceite**: todos os passos verdes.
 
 ---
 
-## 8) Snippets de Partida (cole como está)
+## 12) Política de PRs (para o agente)
 
-**`lib/github/app.ts`**
+* PR‑1: Estrutura e remoção de duplicatas (`src/app` único) + `next.config.*` sem experimentais.
+* PR‑2: ESLint base + regra de type‑imports + autofix.
+* PR‑3: PageProps (pages dinâmicas) + mover hooks p/ Client Shells.
+* PR‑4: Route handlers (`RouteContext` + `await ctx.params`).
+* PR‑5: cookies/headers await.
+* PR‑6: GitHub Contents union narrowing.
+* PR‑7: Scripts de auditoria + CI (opcional).
 
-```ts
-import { App } from "octokit";
+Cada PR deve conter: **o que foi feito**, **como testar**, **riscos/rollback**.
 
-function getPrivateKey(): string {
-  const b64 = process.env.GITHUB_APP_PRIVATE_KEY_B64;
-  if (!b64) throw new Error("Missing GITHUB_APP_PRIVATE_KEY_B64");
-  return Buffer.from(b64, "base64").toString("utf8");
-}
+Codex Worklist — Mass Fix (Next 15, ESLint/TS) → backlog em 12 blocos, cada um com:
 
-export const githubApp = new App({
-  appId: process.env.GITHUB_APP_ID!,
-  privateKey: getPrivateKey(),
-  oauth: {
-    clientId: process.env.GITHUB_APP_CLIENT_ID!,
-    clientSecret: process.env.GITHUB_APP_CLIENT_SECRET!,
-  },
-});
-```
+erro-alvo, comando de detecção, patch recomendado e critério de aceite;
 
-**`lib/github/verify.ts`**
+inclui Next 15 (PageProps, RouteContext, cookies()/headers() como Promise), ESLint base, @types/react, hooks em pages, union narrowing do GitHub, e mais.
 
-```ts
-import crypto from "crypto";
-export function verifyGitHubWebhook(body: string, signature256: string | null, secret: string) {
-  if (!signature256) return false;
-  const hmac = crypto.createHmac("sha256", secret);
-  const digest = "sha256=" + hmac.update(body).digest("hex");
-  return crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signature256));
-}
-```
+scripts/audit-next15.sh pronto para CI/local (detecta duplicatas de app roots, params síncrono, ctx.params sem await, cookies()/headers() sem await, imports de tipo).
 
-**`app/api/github/webhook/route.ts`**
+Para cada PR, executar a Pipeline de validação do doc:
 
-```ts
-import { NextRequest, NextResponse } from "next/server";
-import { verifyGitHubWebhook } from "@/lib/github/verify";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-export async function POST(req: NextRequest) {
-  const rawBody = await req.text();
-  const sig = req.headers.get("x-hub-signature-256");
-  const event = req.headers.get("x-github-event");
-  const ok = verifyGitHubWebhook(rawBody, sig, process.env.GITHUB_APP_WEBHOOK_SECRET!);
-  if (!ok) return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-  const payload = JSON.parse(rawBody);
-  // TODO: handle installation/push
-  return NextResponse.json({ received: true, event });
-}
-```
+pnpm install
+pnpm lint --fix
+pnpm build
+bash scripts/audit-next15.sh
+bash scripts/smoke.sh
 
----
 
-## 9) Modelos e Parametrização
-
-* **Modelo recomendado**: `gpt-5` ou `o3-mini` para planejamento detalhado com ferramenta; `gpt-5-mini` para iterações rápidas.
-* **Temperatura**: 0.1 (código determinístico); **Max tokens**: conforme contexto.
-* **Style guard**: instrua a responder só com as seções do item 7.
-
----
-
-## 10) PR Template Sugerido
-
-```
-# Título: <escopo curto>
-
-## O que foi feito
-- ...
-
-## Como testar
-- ...
-
-## Notas
-- riscos/limitações
-```
-
----
-
-## 11) Comandos de Teste Rápido
-
-```bash
-# Dev server
-pnpm dev
-
-# Testar health
-curl http://localhost:3000/api/health
-
-# Webhook local (exemplo)
-curl -X POST http://localhost:3000/api/github/webhook \
-  -H "X-GitHub-Event: ping" \
-  -H "X-Hub-Signature-256: sha256=<hash>" \
-  --data-binary '@payload.json'
-```
-
----
-
-## 12) Política de Escopo por PR
-
-* 1 PR = 1 funcionalidade clara.
-* até **5 arquivos** alterados (preferencialmente < 300 linhas).
-* mensagens `feat:`/`chore:`/`fix:`.
-
----
-
-**Fim do Spec** — Cole isto como *System/Developer Prompt* da sessão do seu agente. A cada rodada, ele deve executar apenas o bloco de trabalho do backlog e abrir uma PR.
+Em caso de erro, o agente deve anexar diffs e logs na descrição do PR.
