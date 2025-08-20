@@ -1,5 +1,5 @@
 "use client";
-import SyncBadge from '../../data/SyncBadge';
+import SyncBadge from '../data/SyncBadge';
 
 export default function StatusBar({
   autosaveAt,
