@@ -112,7 +112,7 @@ export async function fetchReadme(spec,{forceRaw=false, token}={}){
   if(spec.rawUrl){
     const r=await safeFetch(spec.rawUrl,{cache:'no-store',mode:'cors'});
     if(!r.ok) throw new Error('Falha ao baixar RAW: '+r.status);
-    return await r.text();
+    return { text: await r.text(), sha: null };
   }
 
   const {owner,repo}=spec; let {branch,path}=spec;
@@ -127,14 +127,14 @@ export async function fetchReadme(spec,{forceRaw=false, token}={}){
       if (status===403 && /rate limit/i.test(data?.message||'')) throw new Error('RATE_LIMIT');
       throw new Error(`API /readme falhou ${status}: ${data?.message||''}`);
     }
-    if(data?.content) return b64ToText(data.content);
+    if(data?.content) return { text: b64ToText(data.content), sha: data.sha };
     throw new Error('API não retornou conteúdo do README');
   }
 
   async function viaAPIContents(pth, ref){
     const {ok,status,data,error}=await fetchJSON(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(pth)}?ref=${encodeURIComponent(ref)}`, token);
     if(error==='NETWORK_FAILURE') throw new Error('NETWORK_FAILURE');
-    if(ok && data?.content) return b64ToText(data.content);
+    if(ok && data?.content) return { text: b64ToText(data.content), sha: data.sha };
     if(status===404) throw new Error('NOT_FOUND_REPO_OR_PRIVATE');
     throw new Error('Arquivo não encontrado no repositório');
   }
@@ -144,7 +144,7 @@ export async function fetchReadme(spec,{forceRaw=false, token}={}){
     if (token && !avoidAPI){
       for (const b of branches){ try { return await viaAPIContents(path, b); } catch(e){ if(String(e.message).includes('NOT_FOUND_REPO_OR_PRIVATE')) throw e; } }
     }
-    try { return await tryRaw(owner,repo,branches,[path]); } catch(e){ if (e.message==='NETWORK_FAILURE') throw e; if (token) throw e; }
+    try { const txt = await tryRaw(owner,repo,branches,[path]); return { text: txt, sha: null }; } catch(e){ if (e.message==='NETWORK_FAILURE') throw e; if (token) throw e; }
   }
 
   if (owner && repo && !path){
@@ -156,7 +156,8 @@ export async function fetchReadme(spec,{forceRaw=false, token}={}){
         if(e.message==='NETWORK_FAILURE') throw e;
         return 'main';
       }));
-      return tryRaw(owner,repo,[def,'main','master','dev','stable']);
+      const txt = await tryRaw(owner,repo,[def,'main','master','dev','stable']);
+      return { text: txt, sha: null };
     }
     try { return await viaAPIReadme(); }
     catch(e){
@@ -165,7 +166,8 @@ export async function fetchReadme(spec,{forceRaw=false, token}={}){
         if(e.message==='NETWORK_FAILURE') throw e;
         return 'main';
       }));
-      return tryRaw(owner,repo,[def,'main','master']);
+      const txt = await tryRaw(owner,repo,[def,'main','master']);
+      return { text: txt, sha: null };
     }
   }
 

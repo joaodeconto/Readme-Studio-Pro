@@ -78,8 +78,8 @@ export function bindUI() {
     try {
       const res = await openWizard();
       if (!res) return;
-      const { installation_id, owner, repo, ref, readme_path, readme } = res;
-      Object.assign(state.inputs, { installation_id, owner, repo, ref, readme_path });
+      const { installation_id, owner, repo, ref, readme_path, readme, base_sha } = res;
+      Object.assign(state.inputs, { installation_id, owner, repo, ref, readme_path, base_sha });
       mdEl.value = readme;
       update();
       toast("README carregado ✅", "ok");
@@ -101,6 +101,7 @@ export function bindUI() {
       $('#btn-analisar').disabled = true;
       const data = await analisarRepo({ installation_id: Number(installation_id), owner, repo, ref, readme_path });
       setAnalysis(data);
+      if (data?.base_sha) state.inputs.base_sha = data.base_sha;
 
       // mostrar findings
       $('#findings').textContent = JSON.stringify({
@@ -132,18 +133,15 @@ export function bindUI() {
   // propor PR
   $('#btn-pr-confirm')?.addEventListener('click', async () => {
     try {
-      const { installation_id, owner, repo, ref, readme_path, message } = state.inputs;
-      const analysis = state.analysis;
-      if (!analysis?.base_sha || !analysis?.preview?.new_content_utf8) {
-        toast('Rode a análise primeiro.', 'warn'); return;
-      }
+      const { installation_id, owner, repo, ref, readme_path, message, base_sha } = state.inputs;
+      if (!base_sha) { toast('Carregue um README primeiro.', 'warn'); return; }
       $('#btn-pr-confirm').disabled = true;
       const head = `readme-studio/update-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
       const pr = await proporPR({
         installation_id: Number(installation_id), owner, repo,
         base: ref || 'main', head, readme_path,
-        message, base_sha: analysis.base_sha,
-        new_content_utf8: analysis.preview.new_content_utf8
+        message, base_sha,
+        new_content_utf8: mdEl.value
       });
       setPR(pr);
       const link = $('#pr-link');
@@ -319,7 +317,7 @@ export function bindUI() {
     try {
       const spec = parseRepoSpec(specStr);
       log('parse spec', specStr, spec);
-      const txt = await fetchReadme(spec, { forceRaw: !!$('#forceRaw')?.checked });
+      const { text: txt } = await fetchReadme(spec, { forceRaw: !!$('#forceRaw')?.checked });
       if (!txt?.trim()) throw new Error('README vazio ou não encontrado');
       mdEl.value = txt; update(); hideLanding();
       log('README carregado. tamanho=', txt.length);
@@ -370,7 +368,7 @@ export function bindUI() {
     if (!specStr) return;
     try {
       const spec = parseRepoSpec(specStr);
-      const txt = await fetchReadme(spec, { forceRaw: !!$('#forceRaw')?.checked });
+      const { text: txt } = await fetchReadme(spec, { forceRaw: !!$('#forceRaw')?.checked });
       if (!txt?.trim()) throw new Error('README vazio ou não encontrado');
       mdEl.value = txt; update();
       hideLanding();

@@ -92,9 +92,9 @@ export async function openWizard() {
         ref = box.querySelector('#wiz-ref').value.trim() || ref;
         readme_path = box.querySelector('#wiz-path').value.trim() || readme_path;
         try {
-          const readme = await fetchReadme({ owner, repo, branch: ref, path: readme_path });
+          const { text: readme, sha } = await fetchReadme({ owner, repo, branch: ref, path: readme_path });
           modal.remove();
-          resolve({ installation_id, owner, repo, ref, readme_path, readme });
+          resolve({ installation_id, owner, repo, ref, readme_path, readme, base_sha: sha });
         } catch(err) {
           alert(err.message === 'NETWORK_FAILURE' ? 'Falha de rede ao baixar README.' : 'Erro: ' + err.message);
           showError('Não foi possível carregar README', attempt);
