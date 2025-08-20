@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRepoStore } from '@ui/state/repo';
 import Button from '@ui/components/ui/button';
 import Modal from '@ui/components/ui/modal';
-import { discoverRepos } from '@/github/fetch';
+import { discoverInstallations, discoverRepos } from '@/github/fetch';
 
 type RepoItem = {
   owner: string;
@@ -24,8 +24,10 @@ export default function RepoPicker({
     if (!open) return;
     async function load() {
       try {
-        // TODO: supply the real installation id
-        const data = await discoverRepos(undefined as any);
+        const inst = await discoverInstallations();
+        const installationId = inst.items?.[0]?.installation_id;
+        if (!installationId) throw new Error('no installation');
+        const data = await discoverRepos(installationId);
         setRepos(data.items ?? []);
       } catch {
         setRepos([]);
