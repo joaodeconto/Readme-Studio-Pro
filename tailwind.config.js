@@ -1,5 +1,5 @@
 export const darkMode = "class";
-export const content = ["./app/web/**/*.{ts,tsx}", "@ui/components/**/*.{ts,tsx}"];
+export const content = ["./src/app/**/*.{ts,tsx}", "@ui/components/**/*.{ts,tsx}"];
 export const theme = {
   extend: {
     colors: {
