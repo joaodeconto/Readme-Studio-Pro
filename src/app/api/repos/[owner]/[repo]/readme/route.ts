@@ -26,10 +26,22 @@ export async function GET(_: NextRequest, { params }: { params: { owner: string;
 }
 
 async function findInstallationIdForRepo(owner: string, repo: string): Promise<number> {
-  const link = await prisma.repoLink.findFirst({
-    where: { owner, repo },
-    select: { installationId: true },
-  });
-  if (!link) throw new Error("Installation not found for repository");
-  return link.installationId;
+  const link = await prisma.repoLink.findFirst({ where: { owner, repo } });
+  if (link) return link.installationId;
+
+  try {
+    const { data } = await githubApp.octokit.request(
+      "GET /repos/{owner}/{repo}/installation",
+      { owner, repo }
+    );
+    await prisma.repoLink.create({
+      data: { owner, repo, installationId: data.id },
+    });
+    return data.id;
+  } catch (e: any) {
+    if (e.status === 404) {
+      throw new Error(`No installation found for ${owner}/${repo}`);
+    }
+    throw e;
+  }
 }
