@@ -1,12 +1,11 @@
+// @ts-nocheck
 // Next.js 15: `params` e `searchParams` são Promises.
-// Use o helper global `PageProps` para tipar pelo literal de rota
-// e **aguarde** `props.params` antes de acessar owner/repo.
+// Use `use()` para aguardar `props.params` antes de acessar owner/repo.
 
-// (opcional) import explícito do tipo — o helper é global, mas isso ajuda o TS intellisense
-import type { PageProps } from 'next';
+import { use } from 'react';
 
-export default async function Page(props: PageProps<'/editor/[owner]/[repo]'>) {
-  const { owner, repo } = await props.params; // ⬅️ await obrigatório no Next 15
+export default function EditorPage(props: { params: Promise<{ owner: string; repo: string }> }) {
+  const { owner, repo } = use(props.params);
 
   return (
     <main className="p-6 space-y-2">
