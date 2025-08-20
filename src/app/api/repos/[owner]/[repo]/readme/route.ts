@@ -20,7 +20,8 @@ export async function GET(_: NextRequest, { params }: { params: { owner: string;
     });
   } catch (e: any) {
     const status = e.status || 500;
-    return NextResponse.json({ error: e.message }, { status });
+    console.error("[repos/readme]", e);
+    return NextResponse.json({ error: "Internal error" }, { status });
   }
 }
 
