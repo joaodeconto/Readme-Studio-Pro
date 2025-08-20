@@ -1,4 +1,7 @@
 import { githubSlugify as slug } from './githubSlug.js';
+import MarkdownIt from 'markdown-it';
+
+const mdParser = new MarkdownIt();
 
 function parseHeadings(md) {
     const withoutCode = md.replace(/```[\s\S]*?```/g, '');
@@ -15,24 +18,41 @@ function parseHeadings(md) {
 }
 
 // Lint simples de links/imagens (relativos)
+// Usa um parser de Markdown para evitar casos falsos com regex.
+// Limitações: tags HTML (<a>/<img>) não são analisadas e o restante
+// das funções neste arquivo ainda dependem de regex simples.
 export function lintLinksAndImages(md) {
-  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-  const imgRegex  = /!\[([^\]]*)\]\(([^)]+)\)/g;
   const links = [];
   const images = [];
 
-  let m;
-  while ((m = linkRegex.exec(md))) {
-    const [_, text, url] = m;
-    // ignora anchors e http(s)
-    if (url.startsWith("#") || /^https?:\/\//i.test(url)) continue;
-    links.push({ text, url });
-  }
-  while ((m = imgRegex.exec(md))) {
-    const [_, alt, url] = m;
-    if (/^https?:\/\//i.test(url)) continue;
-    images.push({ alt, url });
-  }
+  const collect = (tokens) => {
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+
+      if (token.type === 'link_open') {
+        const href = token.attrGet('href');
+        if (href && !href.startsWith('#') && !/^https?:\/\//i.test(href)) {
+          let text = '';
+          for (let j = i + 1; j < tokens.length && tokens[j].type !== 'link_close'; j++) {
+            text += tokens[j].content || '';
+          }
+          links.push({ text, url: href });
+        }
+        while (i < tokens.length && tokens[i].type !== 'link_close') i++;
+      } else if (token.type === 'image') {
+        const src = token.attrGet('src');
+        const alt = token.content || token.attrGet('alt') || '';
+        if (src && !/^https?:\/\//i.test(src)) {
+          images.push({ alt, url: src });
+        }
+      }
+
+      if (token.children) collect(token.children);
+    }
+  };
+
+  collect(mdParser.parse(md, {}));
+
   return { links, images };
 }
 
