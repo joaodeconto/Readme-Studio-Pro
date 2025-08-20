@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 import Topbar from '@ui/components/shell/Topbar';
 import StatusBar from '@ui/components/shell/StatusBar';
@@ -15,10 +14,10 @@ import { useUpdateFile, useCreatePR } from '@/app/web/lib/github';
 
 export default function EditorPage(props: { params: Promise<{ owner: string; repo: string }> }) {
   const { owner, repo } = use(props.params);
-  const { content, setContent, dirty, setDirty } = useEditorStore();
+  const { content, setContent, setDirty } = useEditorStore();
   const { branch, prUrl, set: setRepo } = useRepoStore();
   const [rightPreview, setRightPreview] = useState(false);
-  const [autosaveAt, setAutosaveAt] = useState<string>();
+  const [autosaveAt] = useState<string>();
   const [lintCount, setLintCount] = useState(0);
   const editorRef = useRef<EditorView>(new EditorView);
   const [syncState, setSyncState] = useState<'idle' | 'saving' | 'error'>('idle');
@@ -56,33 +55,45 @@ export default function EditorPage(props: { params: Promise<{ owner: string; rep
         fileSha.current = data.sha;
         setDirty(false);
         setError(undefined);
-        updateFile.mutate(
-          {
-            owner,
-            repo,
-            path: 'README.md',
-            content,
-            message: 'docs: atualiza README',
-            sha: fileSha.current,
-          },
-          {
-            onSuccess: (data) => {
-              fileSha.current = (data as any)?.sha || fileSha.current;
-              setDirty(false);
-              setSyncState('idle');
-            },
-            onError: (err: any) => {
-              setSyncState('error');
-              setError(err.message);
-            },
-          }
-        )
       }
       catch {
 
       }
     }
-  });
+    load();
+  }, [owner, repo, setContent, setDirty]);
+
+  const onSave = () => {
+    if (!owner || !repo) {
+      setError('Selecione um repositório.');
+      return;
+    }
+    setError(undefined);
+    setSyncState('saving');
+    updateFile.mutate(
+      {
+        owner,
+        repo,
+        path: 'README.md',
+        content,
+        message: 'docs: atualiza README',
+        sha: fileSha.current,
+      },
+      {
+        onSuccess: (data: unknown) => {
+          const result = data as { sha?: string };
+          fileSha.current = result.sha ?? fileSha.current;
+          setDirty(false);
+          setSyncState('idle');
+        },
+        onError: (err: unknown) => {
+          setSyncState('error');
+          setError((err as Error).message);
+        },
+      }
+    );
+  };
+
   const onPublish = () => {
     if (!owner || !repo) {
       setError('Selecione um repositório.');
@@ -99,52 +110,53 @@ export default function EditorPage(props: { params: Promise<{ owner: string; rep
         base: 'main',
       },
       {
-        onSuccess: (data) => {
-          const url = (data as any)?.url || (data as any)?.html_url;
+        onSuccess: (data: unknown) => {
+          const result = data as { url?: string; html_url?: string };
+          const url = result.url || result.html_url;
           if (url) setRepo({ prUrl: url });
         },
-        onError: (err: any) => {
-          setError(err.message);
+        onError: (err: unknown) => {
+          setError((err as Error).message);
         },
       }
-    )
+    );
   };
-};
 
-return (
-  <div className="flex flex-col h-full">
-    <Topbar onSave={onSave} onPublish={onPublish} onOpenAI={() => alert('AI Assist')} />
-    <div className="flex-1 grid grid-cols-[1fr_1fr_auto] gap-3 p-3 overflow-hidden">
-      <div className="flex flex-col gap-3 overflow-hidden">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted">Editor</div>
-          <label className="text-xs flex items-center gap-1">
-            <input type="checkbox" checked={rightPreview} onChange={(e) => setRightPreview(e.target.checked)} />
-            Preview à direita
-          </label>
+  return (
+    <div className="flex flex-col h-full">
+      <Topbar onSave={onSave} onPublish={onPublish} onOpenAI={() => alert('AI Assist')} />
+      <div className="flex-1 grid grid-cols-[1fr_1fr_auto] gap-3 p-3 overflow-hidden">
+        <div className="flex flex-col gap-3 overflow-hidden">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted">Editor</div>
+            <label className="text-xs flex items-center gap-1">
+              <input type="checkbox" checked={rightPreview} onChange={(e) => setRightPreview(e.target.checked)} />
+              Preview à direita
+            </label>
+          </div>
+          <Toolbar editorRef={editorRef} />
+          <div className="grid grid-cols-2 gap-3 overflow-hidden">
+            <MdEditor value={content} onChange={setContent} viewRef={editorRef} />
+            {rightPreview ? (
+              <MdPreview value={content} />
+            ) : (
+              <div className="border rounded p-3 text-muted">Desativado</div>
+            )}
+          </div>
         </div>
-        <Toolbar editorRef={editorRef} />
-        <div className="grid grid-cols-2 gap-3 overflow-hidden">
-          <MdEditor value={content} onChange={setContent} viewRef={editorRef} />
-          {rightPreview ? (
-            <MdPreview value={content} />
-          ) : (
-            <div className="border rounded p-3 text-muted">Desativado</div>
-          )}
-        </div>
+        {/* Inspector fixo à direita */}
+        <Inspector />
       </div>
-      {/* Inspector fixo à direita */}
-      <Inspector />
+      <AnalysisBar setLintCount={setLintCount} />
+      <StatusBar
+        autosaveAt={autosaveAt}
+        branch={branch}
+        lintCount={lintCount}
+        prUrl={prUrl}
+        syncState={syncState}
+        error={error}
+      />
     </div>
-    <AnalysisBar setLintCount={setLintCount} />
-    <StatusBar
-      autosaveAt={autosaveAt}
-      branch={branch}
-      lintCount={lintCount}
-      prUrl={prUrl}
-      syncState={syncState}
-      error={error}
-    />
-  </div>
-);
+  );
+}
 
