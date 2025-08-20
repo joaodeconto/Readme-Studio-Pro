@@ -11,14 +11,20 @@ import { useEditorStore } from '@ui/state/editor';
 import { useRepoStore } from '@ui/state/repo';
 import { useEffect, useState, useRef } from 'react';
 import { EditorView } from '@codemirror/view';
+import { useUpdateFile, useCreatePR } from '@/app/web/lib/github';
 
 export default function EditorPage() {
   const { content, setContent, dirty, setDirty } = useEditorStore();
-  const { branch } = useRepoStore();
+  const { owner, repo, branch, prUrl, set: setRepo } = useRepoStore();
   const [rightPreview, setRightPreview] = useState(false);
   const [autosaveAt, setAutosaveAt] = useState<string>();
   const [lintCount, setLintCount] = useState(0);
   const editorRef = useRef<EditorView>(new EditorView);
+  const [syncState, setSyncState] = useState<'idle' | 'saving' | 'error'>('idle');
+  const [error, setError] = useState<string>();
+  const fileSha = useRef<string>(''); // TODO: preencher com SHA real do README
+  const updateFile = useUpdateFile();
+  const createPR = useCreatePR();
 
   // Autosave local (offline-tolerant)
   useEffect(() => {
@@ -42,12 +48,59 @@ export default function EditorPage() {
   }, [dirty]);
 
   const onSave = () => {
-    // TODO: optimistic save -> Git (mutation). Aqui só marca como salvo.
-    setDirty(false);
+    if (!owner || !repo) {
+      setError('Selecione um repositório.');
+      return;
+    }
+    setSyncState('saving');
+    setError(undefined);
+    updateFile.mutate(
+      {
+        owner,
+        repo,
+        path: 'README.md',
+        content,
+        message: 'docs: atualiza README',
+        sha: fileSha.current,
+      },
+      {
+        onSuccess: (data) => {
+          fileSha.current = (data as any)?.sha || fileSha.current;
+          setDirty(false);
+          setSyncState('idle');
+        },
+        onError: (err: any) => {
+          setSyncState('error');
+          setError(err.message);
+        },
+      }
+    );
   };
   const onPublish = () => {
-    // TODO: criar PR (mutation) e exibir link na UI
-    alert('TODO: Criar PR (GitHub API)');
+    if (!owner || !repo) {
+      setError('Selecione um repositório.');
+      return;
+    }
+    setError(undefined);
+    createPR.mutate(
+      {
+        owner,
+        repo,
+        title: 'docs: atualiza README',
+        body: 'Atualiza README via Readme Studio',
+        head: branch!,
+        base: 'main',
+      },
+      {
+        onSuccess: (data) => {
+          const url = (data as any)?.url || (data as any)?.html_url;
+          if (url) setRepo({ prUrl: url });
+        },
+        onError: (err: any) => {
+          setError(err.message);
+        },
+      }
+    );
   };
 
   return (
@@ -76,7 +129,14 @@ export default function EditorPage() {
         <Inspector />
       </div>
       <AnalysisBar setLintCount={setLintCount} />
-      <StatusBar autosaveAt={autosaveAt} branch={branch} lintCount={lintCount} />
+      <StatusBar
+        autosaveAt={autosaveAt}
+        branch={branch}
+        lintCount={lintCount}
+        prUrl={prUrl}
+        syncState={syncState}
+        error={error}
+      />
     </div>
   );
 }
