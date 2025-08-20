@@ -5,8 +5,8 @@ import StatusBar from '@ui/components/shell/StatusBar';
 import MdEditor from '@ui/components/editor/MdEditor';
 import MdPreview from '@ui/components/editor/MdPreview';
 import Inspector from '@ui/components/editor/Inspector';
-import Toolbar from '@ui/ui/components/editor/Toolbar';
-import AnalysisBar from '@ui/ui/components/editor/AnalysisBar';
+import Toolbar from '@ui/components/editor/Toolbar';
+import AnalysisBar from '@ui/components/editor/AnalysisBar';
 import { useEditorStore } from '@ui/state/editor';
 import { useRepoStore } from '@ui/state/repo';
 import { useEffect, useState, useRef } from 'react';
@@ -18,7 +18,7 @@ export default function EditorPage() {
   const [rightPreview, setRightPreview] = useState(false);
   const [autosaveAt, setAutosaveAt] = useState<string>();
   const [lintCount, setLintCount] = useState(0);
-  const editorRef = useRef<EditorView>();
+  const editorRef = useRef<EditorView>(new EditorView);
 
   // Autosave local (offline-tolerant)
   useEffect(() => {
