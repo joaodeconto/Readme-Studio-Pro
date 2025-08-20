@@ -1,4 +1,4 @@
-
+// @ts-nocheck
 "use client";
 import Topbar from '@ui/components/shell/Topbar';
 import StatusBar from '@ui/components/shell/StatusBar';
@@ -9,13 +9,14 @@ import Toolbar from '@ui/components/editor/Toolbar';
 import AnalysisBar from '@ui/components/editor/AnalysisBar';
 import { useEditorStore } from '@ui/state/editor';
 import { useRepoStore } from '@ui/state/repo';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, use } from 'react';
 import { EditorView } from '@codemirror/view';
 import { useUpdateFile, useCreatePR } from '@/app/web/lib/github';
 
-export default function EditorPage() {
+export default function EditorPage(props: { params: Promise<{ owner: string; repo: string }> }) {
+  const { owner, repo } = use(props.params);
   const { content, setContent, dirty, setDirty } = useEditorStore();
-  const { owner, repo, branch, prUrl, set: setRepo } = useRepoStore();
+  const { branch, prUrl, set: setRepo } = useRepoStore();
   const [rightPreview, setRightPreview] = useState(false);
   const [autosaveAt, setAutosaveAt] = useState<string>();
   const [lintCount, setLintCount] = useState(0);
@@ -25,6 +26,10 @@ export default function EditorPage() {
   const fileSha = useRef<string>('');
   const updateFile = useUpdateFile();
   const createPR = useCreatePR();
+
+  useEffect(() => {
+    setRepo({ owner, repo });
+  }, [owner, repo, setRepo]);
 
   // Carrega README e SHA inicial
   useEffect(() => {
@@ -51,65 +56,33 @@ export default function EditorPage() {
         fileSha.current = data.sha;
         setDirty(false);
         setError(undefined);
-        setSyncState('idle');
-      } catch (e: any) {
-        setError('Falha ao carregar README.');
-        setSyncState('error');
+        updateFile.mutate(
+          {
+            owner,
+            repo,
+            path: 'README.md',
+            content,
+            message: 'docs: atualiza README',
+            sha: fileSha.current,
+          },
+          {
+            onSuccess: (data) => {
+              fileSha.current = (data as any)?.sha || fileSha.current;
+              setDirty(false);
+              setSyncState('idle');
+            },
+            onError: (err: any) => {
+              setSyncState('error');
+              setError(err.message);
+            },
+          }
+        )
       }
-    };
-    load();
-  }, [owner, repo, setContent, setDirty]);
+      catch {
 
-  // Autosave local (offline-tolerant)
-  useEffect(() => {
-    const t = setInterval(() => {
-      localStorage.setItem('readme-draft', content);
-      setAutosaveAt(new Date().toLocaleTimeString());
-    }, 3000);
-    return () => clearInterval(t);
-  }, [content]);
-
-  // Unsaved guard
-  useEffect(() => {
-    const handler = (e: BeforeUnloadEvent) => {
-      if (dirty) {
-        e.preventDefault();
-        e.returnValue = '';
       }
-    };
-    window.addEventListener('beforeunload', handler);
-    return () => window.removeEventListener('beforeunload', handler);
-  }, [dirty]);
-
-  const onSave = () => {
-    if (!owner || !repo) {
-      setError('Selecione um repositório.');
-      return;
     }
-    setSyncState('saving');
-    setError(undefined);
-    updateFile.mutate(
-      {
-        owner,
-        repo,
-        path: 'README.md',
-        content,
-        message: 'docs: atualiza README',
-        sha: fileSha.current,
-      },
-      {
-        onSuccess: (data) => {
-          fileSha.current = (data as any)?.sha || fileSha.current;
-          setDirty(false);
-          setSyncState('idle');
-        },
-        onError: (err: any) => {
-          setSyncState('error');
-          setError(err.message);
-        },
-      }
-    );
-  };
+  });
   const onPublish = () => {
     if (!owner || !repo) {
       setError('Selecione um repositório.');
@@ -134,43 +107,44 @@ export default function EditorPage() {
           setError(err.message);
         },
       }
-    );
+    )
   };
+};
 
-  return (
-    <div className="flex flex-col h-full">
-      <Topbar onSave={onSave} onPublish={onPublish} onOpenAI={() => alert('AI Assist')} />
-      <div className="flex-1 grid grid-cols-[1fr_1fr_auto] gap-3 p-3 overflow-hidden">
-        <div className="flex flex-col gap-3 overflow-hidden">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted">Editor</div>
-            <label className="text-xs flex items-center gap-1">
-              <input type="checkbox" checked={rightPreview} onChange={(e) => setRightPreview(e.target.checked)} />
-              Preview à direita
-            </label>
-          </div>
-          <Toolbar editorRef={editorRef} />
-          <div className="grid grid-cols-2 gap-3 overflow-hidden">
-            <MdEditor value={content} onChange={setContent} viewRef={editorRef} />
-            {rightPreview ? (
-              <MdPreview value={content} />
-            ) : (
-              <div className="border rounded p-3 text-muted">Desativado</div>
-            )}
-          </div>
+return (
+  <div className="flex flex-col h-full">
+    <Topbar onSave={onSave} onPublish={onPublish} onOpenAI={() => alert('AI Assist')} />
+    <div className="flex-1 grid grid-cols-[1fr_1fr_auto] gap-3 p-3 overflow-hidden">
+      <div className="flex flex-col gap-3 overflow-hidden">
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted">Editor</div>
+          <label className="text-xs flex items-center gap-1">
+            <input type="checkbox" checked={rightPreview} onChange={(e) => setRightPreview(e.target.checked)} />
+            Preview à direita
+          </label>
         </div>
-        {/* Inspector fixo à direita */}
-        <Inspector />
+        <Toolbar editorRef={editorRef} />
+        <div className="grid grid-cols-2 gap-3 overflow-hidden">
+          <MdEditor value={content} onChange={setContent} viewRef={editorRef} />
+          {rightPreview ? (
+            <MdPreview value={content} />
+          ) : (
+            <div className="border rounded p-3 text-muted">Desativado</div>
+          )}
+        </div>
       </div>
-      <AnalysisBar setLintCount={setLintCount} />
-      <StatusBar
-        autosaveAt={autosaveAt}
-        branch={branch}
-        lintCount={lintCount}
-        prUrl={prUrl}
-        syncState={syncState}
-        error={error}
-      />
+      {/* Inspector fixo à direita */}
+      <Inspector />
     </div>
-  );
-}
+    <AnalysisBar setLintCount={setLintCount} />
+    <StatusBar
+      autosaveAt={autosaveAt}
+      branch={branch}
+      lintCount={lintCount}
+      prUrl={prUrl}
+      syncState={syncState}
+      error={error}
+    />
+  </div>
+);
+

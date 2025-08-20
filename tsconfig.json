@@ -4,7 +4,9 @@
     "types": [
       "node",
       "jest",
-      "vite/client"
+      "vite/client",
+      "react",
+      "react-dom"
     ],
     "jsx": "preserve",
     "plugins": [
