@@ -4,6 +4,7 @@ import { useEditorStore } from '../../state/editor';
 import { useState } from 'react';
 import { lintMarkdown } from '../../../utils/lint.js';
 import DiffMatchPatch from 'diff-match-patch';
+import { useAnalysisStore } from '../../state/analysis';
 
 export default function AnalysisBar({
   setLintCount,
@@ -14,9 +15,15 @@ export default function AnalysisBar({
   const [analysis, setAnalysis] = useState<any>();
   const [original, setOriginal] = useState('');
   const [diffHtml, setDiffHtml] = useState<string>();
+  const { setLintIssues, setAISuggestions } = useAnalysisStore();
 
   const analyze = () => {
     const res = lintMarkdown(content);
+    setLintIssues(res.issues);
+    const suggestions = res.issues
+      .filter((i) => i.sev !== 'ok')
+      .map((i) => `Revisar: ${i.msg}`);
+    setAISuggestions(suggestions);
     setAnalysis(res);
     setLintCount(res.issues.length);
     setOriginal(content);

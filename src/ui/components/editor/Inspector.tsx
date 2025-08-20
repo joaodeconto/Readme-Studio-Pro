@@ -4,6 +4,8 @@ import TocPanel from './panels/TocPanel';
 import EmojiPanel from './panels/EmojiPanel';
 import SnippetLibrary from './panels/SnippetLibrary';
 import AssetPicker from './panels/AssetPicker';
+import LintPanel from './panels/LintPanel';
+import AIPanel from './panels/AIPanel';
 
 const tabs = [
   { id: 'toc', label: 'TOC' },
@@ -36,12 +38,8 @@ export default function Inspector() {
         {inspectorTab === 'emoji' && <EmojiPanel />}
         {inspectorTab === 'snippets' && <SnippetLibrary />}
         {inspectorTab === 'assets' && <AssetPicker />}
-        {inspectorTab === 'lint' && (
-          <div className="text-sm text-muted">TODO: lint report</div>
-        )}
-        {inspectorTab === 'ai' && (
-          <div className="text-sm text-muted">TODO: AI suggestions</div>
-        )}
+        {inspectorTab === 'lint' && <LintPanel />}
+        {inspectorTab === 'ai' && <AIPanel />}
       </div>
     </aside>
   );
