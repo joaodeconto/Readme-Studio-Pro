@@ -30,21 +30,26 @@ export function bindUI() {
   const bakeEmoji = $('#bakeEmoji');
   const diffModal = $('#diff-modal');
   const diffView = $('#diff-view');
-  $('#btn-voltar')?.addEventListener('click', () => { diffModal.hidden = true; });
-  const landing = $('#landing');
+  const stepConnect = $('#step-connect');
   const app = $('#app');
-  const btnCreate = $('#landing-create');
-  const btnOpen = $('#landing-open');
-  const defaultMd = `# Nome do Projeto\n\nBreve descrição…\n\n> [!TIP]\n> Use o painel à esquerda para inserir blocos prontos.\n`;
+  const btnAnalisar = $('#btn-analisar');
+  const btnPreview = $('#btn-preview');
+  const btnPrConfirm = $('#btn-pr-confirm');
+  let analysisReady = false;
+  let step = 1;
 
-  function showLanding() { landing.hidden = false; app.hidden = true; }
-  function hideLanding() { landing.hidden = true; app.hidden = false; }
-
-  if (!mdEl.value.trim()) {
-    showLanding();
-  } else {
-    hideLanding();
+  function setStep(n) {
+    step = n;
+    stepConnect.hidden = n !== 1;
+    app.hidden = n === 1;
+    if (diffModal) diffModal.hidden = n !== 3;
+    if (btnAnalisar) btnAnalisar.disabled = n !== 2;
+    if (btnPreview) btnPreview.disabled = (n !== 2) || !analysisReady;
+    if (btnPrConfirm) btnPrConfirm.disabled = n !== 3;
   }
+
+  $('#btn-voltar')?.addEventListener('click', () => { setStep(2); });
+  setStep(1);
 
   function countStats(s) {
     const noCode = s.replace(/```[\s\S]*?```/g, '');
@@ -79,7 +84,9 @@ export function bindUI() {
       state.original_readme = readme;
       mdEl.value = readme;
       update();
-      hideLanding();
+      setStep(2);
+      analysisReady = false;
+      if (btnPreview) btnPreview.disabled = true;
       toast('README carregado ✅', 'ok');
     } catch (err) {
       console.error(err);
@@ -89,7 +96,6 @@ export function bindUI() {
   }
 
   $('#btn-connect')?.addEventListener('click', handleWizard);
-  $('#landing-import')?.addEventListener('click', handleWizard);
 
   // analisar
   $('#btn-analisar')?.addEventListener('click', async () => {
@@ -99,7 +105,7 @@ export function bindUI() {
         toast('Selecione um repositório primeiro.', 'warn');
         return;
       }
-      $('#btn-analisar').disabled = true;
+      btnAnalisar.disabled = true;
       const data = await analisarRepo({ installation_id: Number(installation_id), owner, repo, ref, readme_path });
       setAnalysis(data);
       if (data?.base_sha) state.inputs.base_sha = data.base_sha;
@@ -115,20 +121,24 @@ export function bindUI() {
       // preview antes/depois
       const preview = data.preview?.new_content_utf8 || '';
       $('#preview-after').innerHTML = mdToHtml(preview);
-      // diff entre original carregado e conteúdo atual
-      const dmp = new DiffMatchPatch();
-      const diff = dmp.diff_main(state.original_readme || '', mdEl.value);
-      dmp.diff_cleanupSemantic(diff);
-      if (diffView) diffView.innerHTML = dmp.diff_prettyHtml(diff);
-      if (diffModal) diffModal.hidden = false;
+      analysisReady = true;
+      if (btnPreview) btnPreview.disabled = false;
       toast('Análise concluída ✅', 'ok');
     } catch (e) {
       console.error(e);
       if (e.message === 'NETWORK_FAILURE') toast('Falha de rede durante a análise', 'err');
       else toast('Falha na análise: ' + e.message, 'err');
     } finally {
-      $('#btn-analisar').disabled = false;
+      btnAnalisar.disabled = false;
     }
+  });
+
+  $('#btn-preview')?.addEventListener('click', () => {
+    const dmp = new DiffMatchPatch();
+    const diff = dmp.diff_main(state.original_readme || '', mdEl.value);
+    dmp.diff_cleanupSemantic(diff);
+    if (diffView) diffView.innerHTML = dmp.diff_prettyHtml(diff);
+    setStep(3);
   });
 
   // propor PR
@@ -136,7 +146,7 @@ export function bindUI() {
     try {
       const { installation_id, owner, repo, ref, readme_path, message, base_sha } = state.inputs;
       if (!base_sha) { toast('Carregue um README primeiro.', 'warn'); return; }
-      $('#btn-pr-confirm').disabled = true;
+      btnPrConfirm.disabled = true;
       const head = `readme-studio/update-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
       const pr = await proporPR({
         installation_id: Number(installation_id), owner, repo,
@@ -154,8 +164,8 @@ export function bindUI() {
       if (e.message === 'NETWORK_FAILURE') toast('Falha de rede ao criar PR', 'err');
       else toast('Falha ao criar PR: ' + e.message, 'err');
     } finally {
-      $('#btn-pr-confirm').disabled = false;
-      if (diffModal) diffModal.hidden = true;
+      btnPrConfirm.disabled = false;
+      setStep(2);
     }
   });
 
@@ -209,7 +219,7 @@ export function bindUI() {
     const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.md,text/markdown,text/plain';
     inp.onchange = () => {
       const f = inp.files[0]; if (!f) return;
-      const r = new FileReader(); r.onload = () => { mdEl.value = r.result; update(); hideLanding(); };
+      const r = new FileReader(); r.onload = () => { mdEl.value = r.result; update(); setStep(2); };
       r.readAsText(f);
     };
     inp.click();
@@ -328,17 +338,6 @@ export function bindUI() {
     const res = lintMarkdown(mdEl.value);
     renderLint(res);
   };
-
-  btnCreate?.addEventListener('click', () => {
-    hideLanding();
-    mdEl.value = defaultMd;
-    update();
-  });
-
-  btnOpen?.addEventListener('click', () => {
-    hideLanding();
-    $('#open').click();
-  });
 
   update();
 }

@@ -9,11 +9,10 @@
 </head>
 
 <body>
-  <div id="landing">
-    <button class="btn" id="landing-import">Importar do GitHub</button>
-    <button class="btn" id="landing-create">Criar do zero</button>
-    <button class="btn" id="landing-open">Abrir arquivo</button>
-  </div>
+  <section class="panel" id="step-connect">
+    <h3>Conectar repositório</h3>
+    <button class="btn" id="btn-connect">Selecionar repositório…</button>
+  </section>
   <div id="app" hidden>
   <header>
     <div class="wrap">
@@ -162,15 +161,12 @@
       </div>
     </div>
 
-    <section class="panel">
-      <h3>Conectar repositório</h3>
-      <button class="btn" id="btn-connect">Selecionar repositório…</button>
-      <div class="actions">
-        <button class="btn" id="btn-analisar">Analisar</button>
-        <a id="pr-link" href="#" rel="noopener"></a>
-      </div>
-      <div id="toast" class="toast"></div>
-    </section>
+    <div class="actions">
+      <button class="btn" id="btn-analisar" disabled>Analisar</button>
+      <button class="btn" id="btn-preview" disabled>Pré-visualizar alterações</button>
+      <a id="pr-link" href="#" rel="noopener"></a>
+    </div>
+    <div id="toast" class="toast"></div>
 
     <section class="panel">
       <h3>Findings</h3>
