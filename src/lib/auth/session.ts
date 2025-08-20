@@ -1,19 +1,20 @@
-import { NextRequest } from "next/server";
+import { cookies } from "next/headers";
 
 export interface SessionUser {
   id: number;
 }
 
+const SESSION_COOKIE = "session_user_id";
+
 /**
- * Placeholder session lookup.
+ * Retrieve the current authenticated user from a session cookie.
  *
- * TODO: replace header-based lookup with real session management
- * (e.g. cookies or NextAuth).
+ * This implementation assumes the user's id is stored in a cookie and
+ * should be replaced with a full session mechanism (e.g. NextAuth) when
+ * available.
  */
-export async function getSessionUser(
-  req: NextRequest
-): Promise<SessionUser | null> {
-  const id = req.headers.get("x-user-id");
+export async function getSessionUser(): Promise<SessionUser | null> {
+  const id = cookies().get(SESSION_COOKIE)?.value;
   return id ? { id: Number(id) } : null;
 }
 

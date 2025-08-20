@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     return res;
   }
 
-  const session = await getSessionUser(req);
+  const session = await getSessionUser();
   if (!session) {
     const res = NextResponse.redirect(new URL("/?github=unauthenticated", req.url));
     res.cookies.delete(STATE_COOKIE);
