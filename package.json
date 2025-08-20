@@ -14,6 +14,7 @@
     "@codemirror/view": "latest",
     "@fastify/cors": "^11.1.0",
     "@opentelemetry/api": "latest",
+    "@prisma/client": "latest",
     "@sentry/nextjs": "latest",
     "@tanstack/react-query": "latest",
     "@uiw/react-codemirror": "latest",
@@ -40,8 +41,7 @@
     "remark-breaks": "latest",
     "remark-gfm": "latest",
     "zod": "latest",
-    "zustand": "latest",
-    "@prisma/client": "latest"
+    "zustand": "latest"
   },
   "devDependencies": {
     "@testing-library/react": "latest",
@@ -55,9 +55,9 @@
     "concurrently": "^9.2.0",
     "playwright": "latest",
     "postcss": "latest",
+    "prisma": "^6.14.0",
     "tailwindcss": "latest",
     "typescript": "5.9.2",
-    "vitest": "latest",
-    "prisma": "latest"
+    "vitest": "latest"
   }
 }
