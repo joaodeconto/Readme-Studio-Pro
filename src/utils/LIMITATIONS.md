@@ -8,3 +8,7 @@ Consequentemente:
 - Extensões de Markdown fora do padrão podem ser ignoradas.
 
 Essas limitações devem ser consideradas ao evoluir o lint.
+
+> **Nota:** No navegador, o `markdown-it` é carregado via CDN
+(`https://esm.sh/markdown-it@14.1.0`) ou precisa ser incluído em um
+processo de bundling para ser resolvido.
