@@ -16,6 +16,7 @@
     "@sentry/nextjs": "latest",
     "@tanstack/react-query": "latest",
     "@uiw/react-codemirror": "latest",
+    "diff-match-patch": "^1.0.5",
     "dotenv": "^17.2.1",
     "fastify": "^5.5.0",
     "framer-motion": "latest",
@@ -50,6 +51,7 @@
     "playwright": "latest",
     "postcss": "latest",
     "tailwindcss": "latest",
+    "typescript": "5.9.2",
     "vitest": "latest"
   }
 }
