@@ -1,7 +1,7 @@
-import '../styles/globals.css';
-import '../styles/tokens.css';
+import '../../ui/styles/globals.css';
+import '../../ui/styles/tokens.css';
 import Providers from './lib/providers';
-import AppSidebar from '../../ui/components/shell/AppSidebar';
+import AppSidebar from '@ui/components/shell/AppSidebar';
 
 export const metadata = { title: 'README Studio • Pro' };
 

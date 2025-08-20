@@ -1,14 +1,14 @@
-"use client";
 
-import Topbar from '../../../../../ui/components/shell/Topbar.jsx';
-import StatusBar from '../../../../../ui/components/shell/StatusBar';
-import MdEditor from '../../../../../ui/components/editor/MdEditor';
-import MdPreview from '../../../../../ui/components/editor/MdPreview';
-import Inspector from '../../../../../ui/components/editor/Inspector';
-import Toolbar from '../../../../../ui/components/editor/Toolbar';
-import AnalysisBar from '../../../../../ui/components/editor/AnalysisBar';
-import { useEditorStore } from '../../../../../ui/state/editor';
-import { useRepoStore } from '../../../../../ui/state/repo';
+"use client";
+import Topbar from '@ui/components/shell/Topbar';
+import StatusBar from '@ui/components/shell/StatusBar';
+import MdEditor from '@ui/components/editor/MdEditor';
+import MdPreview from '@ui/components/editor/MdPreview';
+import Inspector from '@ui/components/editor/Inspector';
+import Toolbar from '@ui/ui/components/editor/Toolbar';
+import AnalysisBar from '@ui/ui/components/editor/AnalysisBar';
+import { useEditorStore } from '@ui/state/editor';
+import { useRepoStore } from '@ui/state/repo';
 import { useEffect, useState, useRef } from 'react';
 import { EditorView } from '@codemirror/view';
 
