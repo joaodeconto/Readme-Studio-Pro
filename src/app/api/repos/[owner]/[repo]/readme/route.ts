@@ -4,14 +4,18 @@ import { findInstallationIdForRepo } from "@/lib/github/installations";
 
 export const runtime = "nodejs";
 
-export async function GET(_: NextRequest, { params }: { params: { owner: string; repo: string } }) {
-  const installationId = await findInstallationIdForRepo(params.owner, params.repo);
+export async function GET(
+  req: NextRequest,
+  context: any
+) {
+  const { owner, repo } = context.params as { owner: string; repo: string };
+  const installationId = await findInstallationIdForRepo(owner, repo);
   const octokit = await githubApp.getInstallationOctokit(installationId);
 
   try {
     const { data } = await octokit.request("GET /repos/{owner}/{repo}/readme", {
-      owner: params.owner,
-      repo: params.repo,
+      owner,
+      repo,
       mediaType: { format: "raw" },
     });
     return new NextResponse(data as unknown as BodyInit, {
