@@ -26,7 +26,6 @@
     "framer-motion": "latest",
     "grep": "^0.1.0",
     "i18next": "latest",
-    "jest": "^30.0.5",
     "lucide-react": "latest",
     "markdown-it": "^14.1.0",
     "next": "latest",
