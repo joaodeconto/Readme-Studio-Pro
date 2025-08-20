@@ -37,7 +37,7 @@
     "react-markdown": "latest",
     "remark-breaks": "latest",
     "remark-gfm": "latest",
-    "remark-slug": "latest",
+    "rehype-slug": "latest",
     "zod": "latest",
     "zustand": "latest"
   },
