@@ -22,3 +22,9 @@ model RepoLink {
   installationId Int
   createdAt      DateTime @default(now())
 }
+
+model User {
+  id                Int      @id @default(autoincrement())
+  githubAccessToken String?
+  createdAt         DateTime @default(now())
+}
