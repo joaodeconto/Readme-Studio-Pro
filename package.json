@@ -7,7 +7,8 @@
     "test": "node --test",
     "start": "next start",
     "build": "next build",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:pages": "./scripts/find-next15-params.sh"
   },
   "dependencies": {
     "@codemirror/lang-markdown": "latest",
