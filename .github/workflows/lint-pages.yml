@@ -19,3 +19,4 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm run lint:pages
+      - run: bash scripts/audit-next15.sh
