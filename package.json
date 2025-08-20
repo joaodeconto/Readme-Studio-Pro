@@ -17,6 +17,7 @@
     "@sentry/nextjs": "latest",
     "@tanstack/react-query": "latest",
     "@uiw/react-codemirror": "latest",
+    "@vercel/speed-insights": "^1.2.0",
     "diff-match-patch": "^1.0.5",
     "dotenv": "^17.2.1",
     "fastify": "^5.5.0",
@@ -35,9 +36,9 @@
     "react-hook-form": "latest",
     "react-i18next": "latest",
     "react-markdown": "latest",
+    "rehype-slug": "latest",
     "remark-breaks": "latest",
     "remark-gfm": "latest",
-    "rehype-slug": "latest",
     "zod": "latest",
     "zustand": "latest"
   },
