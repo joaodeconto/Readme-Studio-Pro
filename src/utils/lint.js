@@ -1,5 +1,5 @@
 import { githubSlugify as slug } from './githubSlug.js';
-import {MarkdownIt} from 'markdown-it';
+import MarkdownIt from 'markdown-it';
 
 const mdParser = new MarkdownIt();
 
