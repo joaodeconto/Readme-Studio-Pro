@@ -16,6 +16,7 @@ package-lock.json
 # -------------------------------------------------------------------
 dist/
 build/
+.next/
 coverage/
 .tmp/
 .cache/
