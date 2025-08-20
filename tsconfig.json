@@ -3,7 +3,6 @@
   "compilerOptions": {
     "types": [
       "node",
-      "jest",
       "vite/client",
       "react",
       "react-dom"
