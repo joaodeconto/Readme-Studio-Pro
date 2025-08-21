@@ -65,3 +65,4 @@ Desktop.ini
 *.tmp
 .vercel
 .next/server/middleware-react-loadable-manifest.js
+.next/server/middleware-react-loadable-manifest.js
