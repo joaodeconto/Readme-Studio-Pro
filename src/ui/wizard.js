@@ -1,5 +1,5 @@
-import { discoverInstallations, discoverRepos, discoverReadme, fetchReadme } from '../github/fetch.js';
-import { startAuthFlow } from '../github/auth.js';
+import { discoverInstallations, discoverRepos, discoverReadme, fetchReadme } from '../github/fetch.ts';
+import { startAuthFlow } from '../github/auth.ts';
 
 export async function openWizard() {
   await startAuthFlow();

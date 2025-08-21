@@ -4,7 +4,7 @@ import assert from 'node:assert';
 globalThis.localStorage = { getItem: () => null };
 globalThis.document = { getElementById: () => null };
 
-const { __TESTING__ } = await import('../src/github/fetch.js');
+const { __TESTING__ } = await import('../src/github/fetch.ts');
 const { discoverDefaultBranch } = __TESTING__;
 
 test('discoverDefaultBranch', async (t) => {

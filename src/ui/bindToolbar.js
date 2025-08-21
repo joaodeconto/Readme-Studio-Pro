@@ -8,7 +8,7 @@ import { toList, toCode, replaceSelection, getSelectionRanges } from '../feature
 import { TPL } from '../features/templates.js';
 import { attachHistory } from '../state/history.js';
 import { lintMarkdown } from '../utils/lint.js';
-import { analisarRepo, proporPR } from '../github/fetch.js';
+import { analisarRepo, proporPR } from '../github/fetch.ts';
 import { state, setAnalysis, setPR } from '../state/store.js';
 import DiffMatchPatch from 'https://esm.sh/diff-match-patch';
 

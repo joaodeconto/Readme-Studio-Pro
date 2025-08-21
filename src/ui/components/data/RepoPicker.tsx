@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRepoStore } from '@ui/state/repo';
 import Button from '@ui/components/ui/button';
 import Modal from '@ui/components/ui/modal';
-import { discoverInstallations, discoverRepos } from '@/github/fetch';
+import { discoverInstallations, discoverRepos } from '@/github/fetch.ts';
 
 type RepoItem = {
   owner: string;

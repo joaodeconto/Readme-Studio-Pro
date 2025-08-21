@@ -3,7 +3,7 @@ import assert from 'node:assert';
 
 globalThis.localStorage = { getItem: () => null };
 
-const { parseRepoSpec } = await import('../src/github/fetch.js');
+const { parseRepoSpec } = await import('../src/github/fetch.ts');
 
 test('parse owner/repo', () => {
   const spec = parseRepoSpec('owner/repo');
