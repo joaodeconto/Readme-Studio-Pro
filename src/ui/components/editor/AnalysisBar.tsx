@@ -2,7 +2,7 @@
 import Button from '../ui/button';
 import { useEditorStore } from '../../state/editor';
 import { useState } from 'react';
-import { lintMarkdown } from '../../../utils/lint';
+import { lintMarkdown, type LintMarkdownResult } from '../../../utils/lint';
 import DiffMatchPatch from 'diff-match-patch';
 import { useAnalysisStore } from '../../state/analysis';
 
@@ -12,9 +12,9 @@ export default function AnalysisBar({
   setLintCount: (n: number) => void;
 }) {
   const { content } = useEditorStore();
-  const [analysis, setAnalysis] = useState<any>();
+  const [analysis, setAnalysis] = useState<LintMarkdownResult | null>(null);
   const [original, setOriginal] = useState('');
-  const [diffHtml, setDiffHtml] = useState<string>();
+  const [diffHtml, setDiffHtml] = useState<string | null>(null);
   const { setLintIssues, setAISuggestions } = useAnalysisStore();
 
   const analyze = () => {

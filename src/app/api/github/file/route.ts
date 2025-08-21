@@ -36,9 +36,18 @@ export async function GET(req: Request) {
 
     // 1) Diretório → retorna Array
     if (Array.isArray(data)) {
+      type DirItem = {
+        name: string;
+        path: string;
+        type: string;
+        size: number;
+        sha: string;
+        download_url?: string | null;
+      };
+
       return NextResponse.json({
         type: "dir",
-        entries: data.map((e: any) => ({
+        entries: (data as DirItem[]).map((e) => ({
           name: e.name,
           path: e.path,
           type: e.type,
@@ -50,7 +59,18 @@ export async function GET(req: Request) {
     }
 
     // 2) Objeto: file/symlink/submodule
-    const node: any = data;
+    type Node = {
+      type?: string;
+      path: string;
+      sha: string;
+      size?: number;
+      encoding?: string;
+      content?: string | null;
+      target?: string | null;
+      submodule_git_url?: string | null;
+    };
+
+    const node = data as Node;
     if (node.type === "file") {
       // `content` (base64) só existe em *file*
       return NextResponse.json({
@@ -86,14 +106,24 @@ export async function GET(req: Request) {
       { error: `Unsupported content type: ${String(node.type)}` },
       { status: 400 }
     );
-  } catch (e: any) {
-    const status = e.status ?? 500;
-    const message = e?.response?.data?.message || e.message || "Internal error";
+  } catch (e: unknown) {
+    const err = e as {
+      status?: number;
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+    const status = err.status ?? 500;
+    const message = err.response?.data?.message || err.message || "Internal error";
     return NextResponse.json({ error: message }, { status });
   }
 }
 
 // TODO: implemente lookup real via DB/webhook `installation.created`.
-async function findInstallationIdForRepo(owner: string, repo: string): Promise<number> {
+async function findInstallationIdForRepo(
+  owner: string,
+  repo: string,
+): Promise<number> {
+  void owner;
+  void repo;
   throw new Error("findInstallationIdForRepo not implemented");
 }

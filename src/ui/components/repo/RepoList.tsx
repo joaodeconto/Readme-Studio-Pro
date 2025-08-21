@@ -30,8 +30,10 @@ export default function RepoList({ installationId, onSelect }: RepoListProps) {
       try {
         const data = await discoverRepos(installationId);
         if (!ignore) setRepos(data.items || []);
-      } catch (e: any) {
-        if (!ignore) setError(e?.message || "Erro ao carregar repositórios");
+      } catch (e: unknown) {
+        const message =
+          e instanceof Error ? e.message : "Erro ao carregar repositórios";
+        if (!ignore) setError(message);
       } finally {
         if (!ignore) setLoading(false);
       }

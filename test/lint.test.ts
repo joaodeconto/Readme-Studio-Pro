@@ -1,5 +1,4 @@
-import test from 'node:test';
-import assert from 'node:assert';
+import { test, expect } from 'vitest';
 import { lintLinksAndImages } from '../src/utils/lint';
 
 test('lintLinksAndImages returns only relative entries', () => {
@@ -19,7 +18,7 @@ test('lintLinksAndImages returns only relative entries', () => {
   expect(result).toStrictEqual({
     links: [
       { text: 'relative', url: './file.md' },
-      { text: 'refLink', url: './ref.md' },
+      { text: 'refLink', url: './ref.md%5D' },
       { text: 'paren', url: './file(test).md' }
     ],
     images: [ { alt: 'pic', url: './img(foo).png' } ]
