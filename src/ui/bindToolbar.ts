@@ -1,5 +1,5 @@
-import { $, $$ } from '../utils/dom.js';
-import { log } from '../utils/log.js';
+import { $, $$ } from '../utils/dom';
+import { log } from '../utils/log';
 import { mdToHtml } from '../render/markdown.js';
 import { highlightAll } from '../render/highlight.js';
 import { applyEmojis } from '../features/emoji.js';
@@ -7,7 +7,7 @@ import { buildTOC } from '../features/toc.js';
 import { toList, toCode, replaceSelection, getSelectionRanges } from '../features/insert.js';
 import { TPL } from '../features/templates.js';
 import { attachHistory } from '../state/history.js';
-import { lintMarkdown } from '../utils/lint.js';
+import { lintMarkdown } from '../utils/lint';
 import { analisarRepo, proporPR } from '../github/fetch.js';
 import { state as rawState, setAnalysis, setPR } from '../state/store.js';
 import DiffMatchPatch from 'diff-match-patch';

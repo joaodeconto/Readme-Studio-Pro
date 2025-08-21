@@ -1,4 +1,4 @@
-import { githubSlugify as slug } from '../utils/githubSlug.js';
+import { githubSlugify as slug } from '../utils/githubSlug';
 import { emojifyTitle } from '../features/emoji.js';
 
 export function buildTOC(md, { useEmoji = false } = {}) {
