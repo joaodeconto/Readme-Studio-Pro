@@ -64,3 +64,4 @@ Desktop.ini
 *.bak
 *.tmp
 .vercel
+.next/server/middleware-react-loadable-manifest.js
