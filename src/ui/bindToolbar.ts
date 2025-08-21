@@ -9,34 +9,69 @@ import { TPL } from '../features/templates.js';
 import { attachHistory } from '../state/history.js';
 import { lintMarkdown } from '../utils/lint';
 import { analisarRepo, proporPR } from '../github/fetch.js';
-import { state, setAnalysis, setPR } from '../state/store.js';
-import DiffMatchPatch from 'https://esm.sh/diff-match-patch';
+import { state as rawState, setAnalysis, setPR } from '../state/store.js';
+import DiffMatchPatch from 'diff-match-patch';
 
+interface RepoAnalysis {
+  base_sha?: string;
+  findings?: {
+    headings?: unknown;
+    toc?: unknown;
+    relative_paths?: string[] | null;
+    issues?: unknown[];
+  };
+  preview?: { new_content_utf8?: string };
+}
 
-function toast(msg, type = 'info') {
-  const el = $('#toast'); if (!el) return;
+interface PullRequest {
+  pr_url: string;
+}
+
+interface Inputs {
+  installation_id?: string;
+  owner?: string;
+  repo?: string;
+  ref?: string;
+  readme_path?: string;
+  message?: string;
+  base_sha?: string;
+}
+
+interface State {
+  inputs: Inputs;
+  analysis: RepoAnalysis | null;
+  pr: PullRequest | null;
+  original_readme?: string;
+}
+
+const state = rawState as State;
+
+type Step = 1 | 2 | 3;
+
+function toast(msg: string, type: 'info' | 'warn' | 'ok' | 'err' = 'info'): void {
+  const el = $('#toast') as HTMLElement | null; if (!el) return;
   el.textContent = msg; el.className = `toast ${type}`;
   setTimeout(() => el.className = 'toast', 3000);
 }
 
 
-export function bindUI() {
-  const mdEl = $('#md');
-  const prev = $('#preview');
-  const tabs = $$('.tab');
-  const stats = $('#stats');
-  const useEmoji = $('#useEmoji');
-  const bakeEmoji = $('#bakeEmoji');
-  const diffModal = $('#diff-modal');
-  const diffView = $('#diff-view');
-  const stepConnect = $('#step-connect');
-  const app = $('#app');
-  const btnAnalisar = $('#btn-analisar');
-  const btnPreview = $('#btn-preview');
-  const btnPrConfirm = $('#btn-pr-confirm');
+export function bindUI(): void {
+  const mdEl = $('#md') as HTMLTextAreaElement;
+  const prev = $('#preview') as HTMLElement;
+  const tabs = $$('.tab') as HTMLElement[];
+  const stats = $('#stats') as HTMLElement;
+  const useEmoji = $('#useEmoji') as HTMLInputElement | null;
+  const bakeEmoji = $('#bakeEmoji') as HTMLInputElement | null;
+  const diffModal = $('#diff-modal') as HTMLElement | null;
+  const diffView = $('#diff-view') as HTMLElement | null;
+  const stepConnect = $('#step-connect') as HTMLElement;
+  const app = $('#app') as HTMLElement;
+  const btnAnalisar = $('#btn-analisar') as HTMLButtonElement | null;
+  const btnPreview = $('#btn-preview') as HTMLButtonElement | null;
+  const btnPrConfirm = $('#btn-pr-confirm') as HTMLButtonElement | null;
   let analysisReady = false;
 
-  function setStep(n) {
+  function setStep(n: Step): void {
     stepConnect.hidden = n !== 1;
     app.hidden = n === 1;
     if (diffModal) diffModal.hidden = n !== 3;
@@ -48,19 +83,19 @@ export function bindUI() {
   $('#btn-voltar')?.addEventListener('click', () => { setStep(2); });
   setStep(1);
 
-  function countStats(s) {
+  function countStats(s: string): string {
     const noCode = s.replace(/```[\s\S]*?```/g, '');
     const words = (noCode.match(/[A-Za-zÀ-ÿ0-9_]+/g) || []).length;
     const heads = (noCode.match(/^#{1,6}\s/mg) || []).length;
     return `${words} palavras • ${heads} seções`;
   }
 
-  function refreshPreview() {
+  function refreshPreview(): void {
     prev.innerHTML = mdToHtml(mdEl.value, { emojify: useEmoji?.checked });
     highlightAll(prev);
   }
 
-  function update() {
+  function update(): void {
     stats.textContent = countStats(mdEl.value);
     if (!mdEl.hidden) return;
     refreshPreview();
@@ -93,7 +128,7 @@ export function bindUI() {
         return;
       }
       btnAnalisar.disabled = true;
-      const data = await analisarRepo({ installation_id: Number(installation_id), owner, repo, ref, readme_path });
+      const data = await analisarRepo({ installation_id: Number(installation_id), owner, repo, ref, readme_path }) as RepoAnalysis;
       setAnalysis(data);
       if (data?.base_sha) state.inputs.base_sha = data.base_sha;
 
@@ -140,9 +175,9 @@ export function bindUI() {
         base: ref || 'main', head, readme_path,
         message, base_sha,
         new_content_utf8: mdEl.value
-      });
+      }) as PullRequest;
       setPR(pr);
-      const link = $('#pr-link');
+      const link = $('#pr-link') as HTMLAnchorElement;
       link.href = pr.pr_url; link.textContent = 'Abrir PR';
       link.target = '_blank';
       toast('PR criado como draft 🚀', 'ok');
@@ -157,9 +192,9 @@ export function bindUI() {
   });
 
 
-  const history = attachHistory(mdEl, () => { update(); });
-  $('#undo').onclick = () => history.undo();
-  $('#redo').onclick = () => history.redo();
+  const history = attachHistory(mdEl, () => { update(); }) as { undo: () => void; redo: () => void };
+  ($('#undo') as HTMLElement).onclick = () => history.undo();
+  ($('#redo') as HTMLElement).onclick = () => history.redo();
 
   $('#toggleAdv').onclick = () => {
     const p = $('#advPanel');
@@ -305,10 +340,10 @@ export function bindUI() {
     else if (e.ctrlKey && !e.shiftKey && k === 'm') { e.preventDefault(); $('#toggleAdv').click(); }
   });
 
-  function renderLint(res) {
-    const panel = $('#lintPanel');
-    const list = $('#lintList');
-    const sum = $('#lintSummary');
+  function renderLint(res: { issues: { sev: string; msg: string; line?: number }[] }): void {
+    const panel = $('#lintPanel') as HTMLElement;
+    const list = $('#lintList') as HTMLElement;
+    const sum = $('#lintSummary') as HTMLElement;
     list.innerHTML = '';
     let errs = 0, warns = 0;
     res.issues.forEach(it => { if (it.sev === 'err') errs++; else if (it.sev === 'warn') warns++; });
@@ -321,8 +356,8 @@ export function bindUI() {
     });
     panel.hidden = false;
   }
-  $('#lint').onclick = () => {
-    const res = lintMarkdown(mdEl.value);
+  ($('#lint') as HTMLElement).onclick = () => {
+    const res = lintMarkdown(mdEl.value) as { issues: { sev: string; msg: string; line?: number }[] };
     renderLint(res);
   };
 
