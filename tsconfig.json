@@ -3,12 +3,11 @@
   "compilerOptions": {
     "types": [
       "node",
-      "jest",
       "vite/client",
       "react",
       "react-dom"
     ],
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "plugins": [
       {
         "name": "next"

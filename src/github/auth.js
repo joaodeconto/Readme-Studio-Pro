@@ -1,5 +1,3 @@
-import { BACKEND_URL } from './config.js';
-
 const TOKEN_KEY = 'readmeStudioProAuth';
 
 export function getToken() {
@@ -21,25 +19,8 @@ export async function startAuthFlow() {
   const existing = getToken();
   if (existing) return existing;
 
-  return new Promise((resolve, reject) => {
-    const popup = window.open(`${BACKEND_URL}/auth/github`, 'gh-oauth', 'width=600,height=700');
-    if (!popup) {
-      reject(new Error('POPUP_BLOCKED'));
-      return;
-    }
-    const origin = new URL(BACKEND_URL).origin;
-    function handler(ev) {
-      if (ev.origin !== origin) return;
-      const token = ev.data?.token;
-      if (token) {
-        setToken(token);
-        window.removeEventListener('message', handler);
-        popup.close();
-        resolve(token);
-      }
-    }
-    window.addEventListener('message', handler);
-  });
+  window.location.href = '/api/github/oauth/start';
+  return null;
 }
 
 export const __TESTING__ = { TOKEN_KEY };

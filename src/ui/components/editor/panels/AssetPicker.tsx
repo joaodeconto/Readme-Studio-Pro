@@ -1,5 +1,6 @@
 "use client";
-import { useState, ChangeEvent } from 'react';
+import type { ChangeEvent } from 'react';
+import { useState } from 'react';
 import Button from '../../ui/button';
 
 export interface Asset {
