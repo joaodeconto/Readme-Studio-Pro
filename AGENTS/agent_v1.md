@@ -4,13 +4,11 @@ Maker: contribuidor, quer criar/editar READMEs rapidamente.
 
 Visitor: acessa pré-visualizações, dá feedback, sem permissão de escrita.
 
-Maintainer: revisa PRs abertos pelo app.
-
 🗺️ Fluxo do Usuário
 
-Landing → conectar GitHub App ou testar demo.
+Landing → conectar GitHub App, Criar, Carregar .md.
 
-Auth → instalação do GitHub App (ou modo offline limitado).
+Auth → instalação do GitHub App
 
 Repo Picker → busca/repos recentes, público ou privado.
 
@@ -91,11 +89,15 @@ Mapear installationId ↔ repo no DB.
 
 Buscar README (/api/repos/[owner]/[repo]/readme).
 
+Criar novo README vazio
+
 Renderizar Editor + Preview.
 
 AI hooks: TOC, clareza, badges.
 
 Commit → branch + PR com template.
+
+Exportar, Copiar
 
 4. Fallbacks
 

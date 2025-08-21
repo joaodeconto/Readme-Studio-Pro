@@ -5,27 +5,35 @@ import { findInstallationIdForRepo } from "@/lib/github/installations";
 
 export const runtime = "nodejs";
 
+type Params = { owner: string; repo: string };
+
 export async function GET(
-  req: NextRequest,
-  context: { params: { owner: string; repo: string } },
+  _req: NextRequest,
+  { params }: { params: Promise<Params> }
 ) {
-  const { owner, repo } = context.params;
-  const installationId = await findInstallationIdForRepo(owner, repo);
-  const octokit = await githubApp.getInstallationOctokit(installationId);
+  const { owner, repo } = await params;
 
   try {
+    const installationId = await findInstallationIdForRepo(owner, repo);
+    const octokit = await githubApp.getInstallationOctokit(installationId);
+
     const { data } = await octokit.request("GET /repos/{owner}/{repo}/readme", {
       owner,
       repo,
       mediaType: { format: "raw" },
     });
+
     return new NextResponse(data as unknown as BodyInit, {
       status: 200,
       headers: { "content-type": "text/markdown; charset=utf-8" },
     });
   } catch (e: unknown) {
-    const err = e as { status?: number };
-    const status = err.status || 500;
+    const err = e as {
+      status?: number;
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+    const status = err.status ?? 500;
     console.error("[repos/readme]", e);
     return NextResponse.json({ error: "Internal error" }, { status });
   }
