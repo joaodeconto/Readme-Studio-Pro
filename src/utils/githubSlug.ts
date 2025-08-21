@@ -1,4 +1,4 @@
-export function githubSlugify(str) {
+export function githubSlugify(str: string): string {
   return str
     .trim()
     .toLowerCase()

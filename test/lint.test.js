@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { lintLinksAndImages } from '../src/utils/lint.js';
+import { lintLinksAndImages } from '../src/utils/lint.ts';
 
 test('lintLinksAndImages returns only relative entries', () => {
   const md = `

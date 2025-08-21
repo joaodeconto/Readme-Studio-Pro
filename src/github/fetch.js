@@ -1,4 +1,4 @@
-import { log } from '../utils/log.js';
+import { log } from '../utils/log';
 import { BACKEND_URL } from './config.js';
 import { getToken } from './auth.js';
 

@@ -2,7 +2,7 @@
 import Button from '../ui/button';
 import { useEditorStore } from '../../state/editor';
 import { useState } from 'react';
-import { lintMarkdown } from '../../../utils/lint.js';
+import { lintMarkdown } from '../../../utils/lint';
 import DiffMatchPatch from 'diff-match-patch';
 import { useAnalysisStore } from '../../state/analysis';
 
