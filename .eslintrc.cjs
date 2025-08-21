@@ -1,5 +1,6 @@
 // .eslintrc.cjs
-module.exports = {
+/** @type {import('eslint').Linter.Config} */
+const config = {
   root: true,
   extends: ['next/core-web-vitals', 'plugin:@typescript-eslint/recommended'],
   parser: '@typescript-eslint/parser',
@@ -9,3 +10,5 @@ module.exports = {
   },
   ignorePatterns: ['.next/', 'node_modules/', 'dist/'],
 };
+
+module.exports = config;
