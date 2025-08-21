@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { lintLinksAndImages } from '../src/utils/lint.ts';
+import { lintLinksAndImages } from '../src/utils/lint';
 
 test('lintLinksAndImages returns only relative entries', () => {
-  const md = `
+  const md: string = `
 [absolute](https://example.com)
 [anchor](#local)
 [relative](./file.md)
@@ -11,12 +11,12 @@ test('lintLinksAndImages returns only relative entries', () => {
 [paren](./file(test).md)
 ![pic](./img(foo).png)
 
-[my-ref]: ./ref.md
+[my-ref]: ./ref.md]
 `;
 
-  const result = lintLinksAndImages(md);
+  const result: ReturnType<typeof lintLinksAndImages> = lintLinksAndImages(md);
 
-  assert.deepStrictEqual(result, {
+  expect(result).toStrictEqual({
     links: [
       { text: 'relative', url: './file.md' },
       { text: 'refLink', url: './ref.md' },
