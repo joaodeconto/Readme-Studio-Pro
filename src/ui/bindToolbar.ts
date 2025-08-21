@@ -6,10 +6,10 @@ import { applyEmojis } from '../features/emoji.js';
 import { buildTOC } from '../features/toc.js';
 import { toList, toCode, replaceSelection, getSelectionRanges } from '../features/insert.js';
 import { TPL } from '../features/templates.js';
-import { attachHistory } from '../state/history.ts';
+import { attachHistory } from '../state/history';
 import { lintMarkdown } from '../utils/lint';
 import { analisarRepo, proporPR } from '../github/fetch.js';
-import { state, setAnalysis, setPR } from '../state/store.ts';
+import { state, setAnalysis, setPR } from '../state/store';
 import DiffMatchPatch from 'diff-match-patch';
 
 
@@ -45,7 +45,7 @@ interface State {
   original_readme?: string;
 }
 
-const state = rawState as State;
+const stateCur = rawState as State;
 
 type Step = 1 | 2 | 3;
 
@@ -131,7 +131,7 @@ export function bindUI(): void {
       btnAnalisar.disabled = true;
       const data = await analisarRepo({ installation_id: Number(installation_id), owner, repo, ref, readme_path }) as RepoAnalysis;
       setAnalysis(data);
-      if (data?.base_sha) state.inputs.base_sha = data.base_sha;
+      if (data?.base_sha) stateCur.inputs.base_sha = data.base_sha;
 
       // mostrar findings
       $('#findings').textContent = JSON.stringify({
@@ -158,7 +158,7 @@ export function bindUI(): void {
 
   $('#btn-preview')?.addEventListener('click', () => {
     const dmp = new DiffMatchPatch();
-    const diff = dmp.diff_main(state.original_readme || '', mdEl.value);
+    const diff = dmp.diff_main(stateCur.original_readme || '', mdEl.value);
     dmp.diff_cleanupSemantic(diff);
     if (diffView) diffView.innerHTML = dmp.diff_prettyHtml(diff);
     setStep(3);
@@ -167,7 +167,7 @@ export function bindUI(): void {
   // propor PR
   $('#btn-pr-confirm')?.addEventListener('click', async () => {
     try {
-      const { installation_id, owner, repo, ref, readme_path, message, base_sha } = state.inputs;
+      const { installation_id, owner, repo, ref, readme_path, message, base_sha } = stateCur.inputs;
       if (!base_sha) { toast('Carregue um README primeiro.', 'warn'); return; }
       btnPrConfirm.disabled = true;
       const head = `readme-studio/update-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
