@@ -1,12 +1,29 @@
 import { discoverInstallations, discoverRepos, discoverReadme, fetchReadme } from '../github/fetch.js';
 import { startAuthFlow } from '../github/auth.js';
 
-export async function openWizard() {
+interface Installation { installation_id: number; account_login?: string }
+interface RepoItem { owner: string; repo: string; full_name: string }
+interface InstallationsData { items: Installation[] }
+interface ReposData { items: RepoItem[] }
+interface ReadmeInfo { ref?: string; readme_path?: string }
+interface ReadmeData { text: string; sha: string | null }
+
+export interface WizardResult {
+  installation_id: string;
+  owner: string;
+  repo: string;
+  ref: string;
+  readme_path: string;
+  readme: string;
+  base_sha: string | null;
+}
+
+export async function openWizard(): Promise<WizardResult | null> {
   await startAuthFlow();
-  return new Promise(resolve => {
-    const modal = document.createElement('div');
+  return new Promise<WizardResult | null>((resolve) => {
+    const modal = document.createElement('div') as HTMLDivElement;
     modal.className = 'modal';
-    const box = document.createElement('div');
+    const box = document.createElement('div') as HTMLDivElement;
     box.className = 'box';
     modal.appendChild(box);
     document.body.appendChild(modal);
@@ -17,68 +34,69 @@ export async function openWizard() {
     let ref = 'main';
     let readme_path = 'README.md';
 
-    function showError(msg, retryFn) {
+    function showError(msg: string, retryFn: () => void): void {
       box.innerHTML = `<p>${msg}</p><div class="actions"><button class="btn" id="retry">Tentar novamente</button></div>`;
-      box.querySelector('#retry').onclick = retryFn;
+      (box.querySelector('#retry') as HTMLButtonElement).onclick = retryFn;
     }
 
-    async function step1() {
+    async function step1(): Promise<void> {
       box.innerHTML = `
         <div class="progress">1/3</div>
         <h3>Instalação</h3>
         <select id="wiz-inst"></select>
         <div class="actions"><button class="btn" id="next1">Próximo</button></div>`;
       try {
-        const inst = await discoverInstallations();
-        const sel = box.querySelector('#wiz-inst');
+        const inst: InstallationsData = await discoverInstallations();
+        const sel = box.querySelector<HTMLSelectElement>('#wiz-inst')!;
         sel.innerHTML = inst.items.map(i => `<option value="${i.installation_id}">${i.account_login}</option>`).join('');
-        box.querySelector('#next1').onclick = () => {
+        (box.querySelector('#next1') as HTMLButtonElement).onclick = () => {
           installation_id = sel.value;
           step2();
-        };        
-      } catch(e) {
+        };
+      } catch (e: any) {
         alert(e.message === 'NETWORK_FAILURE' ? 'Falha de rede ao listar instalações.' : 'Erro: ' + e.message);
         modal.remove(); resolve(null);
-         showError('Não foi possível carregar instalações', step1);
+        showError('Não foi possível carregar instalações', step1);
       }
     }
 
-    async function step2() {
+    async function step2(): Promise<void> {
       box.innerHTML = `
         <div class="progress">2/3</div>
         <h3>Repositório</h3>
         <input type="text" id="wiz-search" placeholder="Buscar..." />
         <ul id="wiz-repos" class="repo-list"></ul>`;
       try {
-        const data = await discoverRepos(installation_id);
-        const repos = data.items || [];
-        const listEl = box.querySelector('#wiz-repos');
-        function render(list) {
+        const data: ReposData = await discoverRepos(Number(installation_id));
+        const repos: RepoItem[] = data.items || [];
+        const listEl = box.querySelector<HTMLUListElement>('#wiz-repos')!;
+        function render(list: RepoItem[]): void {
           listEl.innerHTML = list.map(r => `<li data-full="${r.owner}/${r.repo}">${r.full_name}</li>`).join('');
         }
         render(repos);
-        box.querySelector('#wiz-search').addEventListener('input', e => {
-          const q = e.target.value.toLowerCase();
+        box.querySelector<HTMLInputElement>('#wiz-search')!.addEventListener('input', e => {
+          const target = e.target as HTMLInputElement;
+          const q = target.value.toLowerCase();
           render(repos.filter(r => r.full_name.toLowerCase().includes(q)));
         });
         listEl.onclick = e => {
-          const li = e.target.closest('li');
+          const li = (e.target as HTMLElement).closest('li');
           if (!li) return;
-          [owner, repo] = li.dataset.full.split('/');
+          [owner, repo] = (li as HTMLLIElement).dataset.full!.split('/');
           step3();
         };
-      } catch(e) {
+      } catch (e: any) {
         alert(e.message === 'NETWORK_FAILURE' ? 'Falha de rede ao listar repositórios.' : 'Erro: ' + e.message);
-        modal.remove(); resolve(null);        
+        modal.remove(); resolve(null);
         showError('Não foi possível carregar repositórios', step2);
       }
     }
 
-    async function step3() {
-      let info;
+    async function step3(): Promise<void> {
+      let info: ReadmeInfo;
       try {
-        info = await discoverReadme(installation_id, owner, repo);
-      } catch(e) {
+        info = await discoverReadme(Number(installation_id), owner, repo);
+      } catch (e: any) {
         alert(e.message === 'NETWORK_FAILURE' ? 'Falha de rede ao obter README.' : 'Erro: ' + e.message);
         modal.remove(); resolve(null); return;
       }
@@ -90,16 +108,16 @@ export async function openWizard() {
         <label>branch <input id="wiz-ref" type="text" value="${ref}" /></label>
         <label>README <input id="wiz-path" type="text" value="${readme_path}" /></label>
         <div class="actions"><button class="btn" id="finish">Concluir</button></div>`;
-      box.querySelector('#finish').onclick = async () => {
-        ref = box.querySelector('#wiz-ref').value.trim() || ref;
-        readme_path = box.querySelector('#wiz-path').value.trim() || readme_path;
+      (box.querySelector('#finish') as HTMLButtonElement).onclick = async () => {
+        ref = (box.querySelector('#wiz-ref') as HTMLInputElement).value.trim() || ref;
+        readme_path = (box.querySelector('#wiz-path') as HTMLInputElement).value.trim() || readme_path;
         try {
-          const { text: readme, sha } = await fetchReadme({ owner, repo, branch: ref, path: readme_path });
+          const { text: readme, sha }: ReadmeData = await fetchReadme({ owner, repo, branch: ref, path: readme_path });
           modal.remove();
           resolve({ installation_id, owner, repo, ref, readme_path, readme, base_sha: sha });
-        } catch(err) {
+        } catch (err: any) {
           alert(err.message === 'NETWORK_FAILURE' ? 'Falha de rede ao baixar README.' : 'Erro: ' + err.message);
-          showError('Não foi possível carregar README', attempt);
+          showError('Não foi possível carregar README', step3);
         }
       };
     }

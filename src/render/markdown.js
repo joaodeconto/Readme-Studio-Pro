@@ -1,4 +1,4 @@
-import { slug } from '../utils/slug.js';
+import { slug } from '../utils/slug';
 import { emojifyTitle } from '../features/emoji.js';
 
 function linkify(s) { return s.replace(/\bhttps?:\/\/[^\s)]+/g, url => `<a href="${url}" target="_blank" rel="noopener">${url}</a>`); }
