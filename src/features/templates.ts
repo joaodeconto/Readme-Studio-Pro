@@ -1,4 +1,8 @@
-export const TPL = {
+export interface TemplateMap {
+  [key: string]: string;
+}
+
+export const TPL: TemplateMap = {
   node: `# Nome do Projeto (Node.js)
 
 [![node](https://img.shields.io/badge/runtime-Node.js-43853d?logo=node.js&logoColor=white)](#) [![license](https://img.shields.io/badge/license-MIT-blue)](#)

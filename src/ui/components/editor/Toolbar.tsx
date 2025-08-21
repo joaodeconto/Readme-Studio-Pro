@@ -2,7 +2,7 @@
 import Button from '../ui/button';
 import type { MutableRefObject } from 'react';
 import type { EditorView } from '@codemirror/view';
-import { buildTOC } from '../../../features/toc.js';
+import { buildTOC } from '../../../features/toc';
 import { useEditorStore } from '../../state/editor';
 
 function wrapSelection(view: EditorView, before: string, after: string = before) {

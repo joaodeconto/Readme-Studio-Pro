@@ -1,4 +1,6 @@
-export const EMO_MAP = [
+export type EmojiRule = [RegExp, string];
+
+export const EMO_MAP: EmojiRule[] = [
   [/^(readme|introdução|introducao|overview|sobre)/i, "📝"],
   [/(objetivos|goals|purpose)/i, "🎯"],
   [/(funcionalidades|features)/i, "✨"],
@@ -27,18 +29,21 @@ export const EMO_MAP = [
   [/(scripts|comandos|commands|cli)/i, "⌨️"],
 ];
 
-export function startsWithEmoji(s) {
-  try { return /^[\u2190-\u2BFF\u2600-\u27BF\u{1F000}-\u{1FAFF}]/u.test((s||'').trim()); }
-  catch { return false; }
+export function startsWithEmoji(s?: string): boolean {
+  try {
+    return /^[\u2190-\u2BFF\u2600-\u27BF\u{1F000}-\u{1FAFF}]/u.test((s || '').trim());
+  } catch {
+    return false;
+  }
 }
 
-function fallbackByLevel(level) {
+function fallbackByLevel(level: number): string {
   if (level === 1) return "📦";
   if (level === 2) return "🧭";
   return "📄";
 }
 
-export function emojifyTitle(title, level=2, force=false) {
+export function emojifyTitle(title: string, level = 2, force = false): string {
   if (startsWithEmoji(title)) return title;
   for (const [re, emo] of EMO_MAP) {
     if (re.test(title)) return `${emo} ${title}`;
@@ -46,13 +51,13 @@ export function emojifyTitle(title, level=2, force=false) {
   return force ? `${fallbackByLevel(level)} ${title}` : title;
 }
 
-export function applyEmojis(md, enabled) {
+export function applyEmojis(md: string, enabled: boolean): string {
   if (!enabled) return md;
-  md = md.replace(/^######\s+(.+)$/gm, (m,t)=>`###### ${emojifyTitle(t, 6, true)}`);
-  md = md.replace(/^#####\s+(.+)$/gm,  (m,t)=>`##### ${emojifyTitle(t, 5, true)}`);
-  md = md.replace(/^####\s+(.+)$/gm,   (m,t)=>`#### ${emojifyTitle(t, 4, true)}`);
-  md = md.replace(/^###\s+(.+)$/gm,    (m,t)=>`### ${emojifyTitle(t, 3, true)}`);
-  md = md.replace(/^##\s+(.+)$/gm,     (m,t)=>`## ${emojifyTitle(t, 2, true)}`);
-  md = md.replace(/^#\s+(.+)$/gm,      (m,t)=>`# ${emojifyTitle(t, 1, true)}`);
+  md = md.replace(/^######\s+(.+)$/gm, (m, t) => `###### ${emojifyTitle(t, 6, true)}`);
+  md = md.replace(/^#####\s+(.+)$/gm, (m, t) => `##### ${emojifyTitle(t, 5, true)}`);
+  md = md.replace(/^####\s+(.+)$/gm, (m, t) => `#### ${emojifyTitle(t, 4, true)}`);
+  md = md.replace(/^###\s+(.+)$/gm, (m, t) => `### ${emojifyTitle(t, 3, true)}`);
+  md = md.replace(/^##\s+(.+)$/gm, (m, t) => `## ${emojifyTitle(t, 2, true)}`);
+  md = md.replace(/^#\s+(.+)$/gm, (m, t) => `# ${emojifyTitle(t, 1, true)}`);
   return md;
 }
