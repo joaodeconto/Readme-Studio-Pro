@@ -49,14 +49,132 @@ const stateCur = rawState as State;
 
 type Step = 1 | 2 | 3;
 
+const toastEl = $('#toast') as HTMLElement | null;
 function toast(msg: string, type: 'info' | 'warn' | 'ok' | 'err' = 'info'): void {
-  const el = $('#toast') as HTMLElement | null; if (!el) return;
-  el.textContent = msg; el.className = `toast ${type}`;
-  setTimeout(() => el.className = 'toast', 3000);
+  if (!toastEl) return;
+  toastEl.textContent = msg;
+  toastEl.className = `toast ${type}`;
+  setTimeout(() => (toastEl.className = 'toast'), 3000);
 }
 
+function renderLint(res: { issues: { sev: string; msg: string; line?: number }[] }): void {
+  const panel = $('#lintPanel') as HTMLElement;
+  const list = $('#lintList') as HTMLElement;
+  const sum = $('#lintSummary') as HTMLElement;
+  list.innerHTML = '';
+  let errs = 0,
+    warns = 0;
+  res.issues.forEach(it => {
+    if (it.sev === 'err') errs++;
+    else if (it.sev === 'warn') warns++;
+  });
+  sum.textContent = `Erros: ${errs} • Avisos: ${warns} • Itens: ${res.issues.length}`;
+  res.issues.forEach(it => {
+    const li = document.createElement('li');
+    li.className = it.sev;
+    li.textContent = (it.line ? `L${it.line}: ` : '') + it.msg;
+    list.appendChild(li);
+  });
+  panel.hidden = false;
+}
 
-export function bindUI(): void {
+function bindInsertionTools(
+  mdEl: HTMLTextAreaElement,
+  update: () => void,
+): void {
+  ($('#addBadge') as HTMLElement).onclick = () => {
+    const L = ($('#bLabel') as HTMLInputElement).value || 'badge';
+    const M = ($('#bMsg') as HTMLInputElement).value || 'ok';
+    const C = (($('#bColor') as HTMLInputElement).value || 'blue').replace(/^#/, '');
+    const G = ($('#bLogo') as HTMLInputElement).value;
+    const url = `https://img.shields.io/badge/${encodeURIComponent(L)}-${encodeURIComponent(M)}-${C}${G ? `?logo=${encodeURIComponent(G)}` : ''}`;
+    replaceSelection(mdEl, `![${L}](${url}) `);
+    update();
+  };
+  ($('#addGHBadges') as HTMLElement).onclick = () => {
+    const rr = (($('#ghRepo') as HTMLInputElement).value || '').trim();
+    if (!rr || !rr.includes('/')) return alert('Use no formato owner/repo');
+    const [o, r] = rr.split('/');
+    const set = [
+      `![stars](https://img.shields.io/github/stars/${o}/${r}?style=flat)`,
+      `![forks](https://img.shields.io/github/forks/${o}/${r}?style=flat)`,
+      `![issues](https://img.shields.io/github/issues/${o}/${r}?style=flat)`,
+      `![license](https://img.shields.io/github/license/${o}/${r}?style=flat)`,
+      `![last commit](https://img.shields.io/github/last-commit/${o}/${r}?style=flat)`,
+    ].join(' ');
+    replaceSelection(mdEl, set + '\n');
+    update();
+  };
+  ($('#addCode') as HTMLElement).onclick = () => {
+    toCode(mdEl, ($('#codeLang') as HTMLInputElement)?.value || '');
+    update();
+  };
+  ($('#toCode') as HTMLElement).onclick = () => {
+    toCode(mdEl, ($('#codeLang') as HTMLInputElement)?.value || '');
+    update();
+  };
+  ($('#toList') as HTMLElement).onclick = () => {
+    toList(mdEl);
+    update();
+  };
+  ($('#addCall') as HTMLElement).onclick = () => {
+    const t = ($('#callType') as HTMLInputElement).value || 'NOTE';
+    replaceSelection(mdEl, `\n> [!${t}]\n> Texto do aviso.\n`);
+    update();
+  };
+  ($('#addDetails') as HTMLElement).onclick = () => {
+    const s = ($('#sumText') as HTMLInputElement).value || 'Mais detalhes';
+    replaceSelection(mdEl, `\n<details>\n<summary>${s}</summary>\n\nConteúdo oculto\n\n</details>\n`);
+    update();
+  };
+  ($('#addTable') as HTMLElement).onclick = () => {
+    const r = parseInt((($('#rows') as HTMLInputElement).value || '2'), 10),
+      c = parseInt((($('#cols') as HTMLInputElement).value || '3'), 10);
+    let md = '\n|';
+    for (let j = 0; j < c; j++) md += ` Col${j + 1} |`;
+    md += '\n|' + Array(c).fill('---').join('|') + '|\n';
+    for (let i = 0; i < r; i++) {
+      md += '|';
+      for (let j = 0; j < c; j++) md += ' dado |';
+      md += '\n';
+    }
+    replaceSelection(mdEl, md + '\n');
+    update();
+  };
+  ($('#addMermaid') as HTMLElement).onclick = () => {
+    const k = ($('#mermKind') as HTMLInputElement).value;
+    const ex = {
+      flowchart: `\n\`\`\`mermaid\nflowchart TD\n  A[Start] --> B{Pergunta?}\n  B -- Sim --> C[Do it]\n  B -- Não --> D[Stop]\n\`\`\`\n`,
+      sequence: `\n\`\`\`mermaid\nsequenceDiagram\n  participant U as Usuário\n  participant S as Sistema\n  U->>S: request\n  S-->>U: response\n\`\`\`\n`,
+      gantt: `\n\`\`\`mermaid\n%%{init: {"theme": "neutral"}}%%\ngantt\n  title Roadmap\n  dateFormat  YYYY-MM-DD\n  section Core\n  Parser       :a1, 2025-08-01, 7d\n  UI           :after a1, 5d\n\`\`\`\n`,
+      class: `\n\`\`\`mermaid\nclassDiagram\n  class Repo{\n    +string name\n    +clone()\n  }\n\`\`\`\n`,
+    }[k];
+    replaceSelection(mdEl, ex || '');
+    update();
+  };
+  ($('#addSection') as HTMLElement).onclick = () => {
+    const sel = ($('#section') as HTMLSelectElement).value;
+    const map: Record<string, string> = {
+      'Header com Badges': `# Nome do Projeto\n\n[![build](https://img.shields.io/badge/build-passing-brightgreen)](#) [![license](https://img.shields.io/badge/license-MIT-blue)](#)\n\nBreve descrição do que o projeto faz.\n\n---\n`,
+      'Resumo / Pitch': `## Resumo\nExplique o problema, a solução e o impacto em 3–4 linhas.\n`,
+      'Instalação': `## Instalação\n\n\`\`\`bash\n# ex.:\nnpm i\n# ou\npip install pacote\n\`\`\`\n`,
+      'Uso': `## Uso\n\n\`\`\`bash\ncomando --help\n\`\`\`\n`,
+      'Exemplos': `## Exemplos\n- Exemplo 1\n- Exemplo 2\n`,
+      'Screenshots': `## Screenshots\n\n![Descrição](imgs/screenshot1.png)\n`,
+      'Roadmap': `## Roadmap\n- [ ] Item 1\n- [ ] Item 2\n`,
+      'Contribuindo': `## Contribuindo\nPRs são bem-vindos. Para mudanças maiores, abra uma issue.\n`,
+      'Licença (MIT)': `## Licença\nMIT © Seu Nome\n`,
+      'TOC (sumário)': `## Sumário\n<!-- o botão TOC automático gera a lista aqui -->\n`,
+    };
+    const block = map[sel] || '';
+    if (block) {
+      replaceSelection(mdEl, '\n' + block + '\n');
+      update();
+    }
+  };
+}
+
+export function bindToolbar(): void {
   const mdEl = $('#md') as HTMLTextAreaElement;
   const prev = $('#preview') as HTMLElement;
   const tabs = $$('.tab') as HTMLElement[];
@@ -248,72 +366,11 @@ export function bindUI(): void {
     inp.click();
   };
 
-  $('#addBadge').onclick = () => {
-    const L = $('#bLabel').value || 'badge';
-    const M = $('#bMsg').value || 'ok';
-    const C = ($('#bColor').value || 'blue').replace(/^#/, '');
-    const G = $('#bLogo').value;
-    const url = `https://img.shields.io/badge/${encodeURIComponent(L)}-${encodeURIComponent(M)}-${C}${G ? `?logo=${encodeURIComponent(G)}` : ''}`;
-    replaceSelection(mdEl, `![${L}](${url}) `);
-    update();
-  };
-  $('#addGHBadges').onclick = () => {
-    const rr = ($('#ghRepo').value || '').trim();
-    if (!rr || !rr.includes('/')) return alert('Use no formato owner/repo');
-    const [o, r] = rr.split('/');
-    const set = [
-      `![stars](https://img.shields.io/github/stars/${o}/${r}?style=flat)`,
-      `![forks](https://img.shields.io/github/forks/${o}/${r}?style=flat)`,
-      `![issues](https://img.shields.io/github/issues/${o}/${r}?style=flat)`,
-      `![license](https://img.shields.io/github/license/${o}/${r}?style=flat)`,
-      `![last commit](https://img.shields.io/github/last-commit/${o}/${r}?style=flat)`
-    ].join(' ');
-    replaceSelection(mdEl, set + '\n'); update();
-  };
-  $('#addCode').onclick = () => { toCode(mdEl, $('#codeLang')?.value || ''); update(); };
-  $('#toCode').onclick = () => { toCode(mdEl, $('#codeLang')?.value || ''); update(); };
-  $('#toList').onclick = () => { toList(mdEl); update(); };
-  $('#addCall').onclick = () => { const t = $('#callType').value || 'NOTE'; replaceSelection(mdEl, `\n> [!${t}]\n> Texto do aviso.\n`); update(); };
-  $('#addDetails').onclick = () => { const s = $('#sumText').value || 'Mais detalhes'; replaceSelection(mdEl, `\n<details>\n<summary>${s}</summary>\n\nConteúdo oculto\n\n</details>\n`); update(); };
-  $('#addTable').onclick = () => {
-    const r = parseInt($('#rows').value || '2', 10), c = parseInt($('#cols').value || '3', 10);
-    let md = '\n|'; for (let j = 0; j < c; j++) md += ` Col${j + 1} |`;
-    md += '\n|' + Array(c).fill('---').join('|') + '|\n';
-    for (let i = 0; i < r; i++) { md += '|'; for (let j = 0; j < c; j++) md += ' dado |'; md += '\n'; }
-    replaceSelection(mdEl, md + '\n'); update();
-  };
-  $('#addMermaid').onclick = () => {
-    const k = $('#mermKind').value;
-    const ex = {
-      flowchart: `\n\`\`\`mermaid\nflowchart TD\n  A[Start] --> B{Pergunta?}\n  B -- Sim --> C[Do it]\n  B -- Não --> D[Stop]\n\`\`\`\n`,
-      sequence: `\n\`\`\`mermaid\nsequenceDiagram\n  participant U as Usuário\n  participant S as Sistema\n  U->>S: request\n  S-->>U: response\n\`\`\`\n`,
-      gantt: `\n\`\`\`mermaid\n%%{init: {"theme": "neutral"}}%%\ngantt\n  title Roadmap\n  dateFormat  YYYY-MM-DD\n  section Core\n  Parser       :a1, 2025-08-01, 7d\n  UI           :after a1, 5d\n\`\`\`\n`,
-      class: `\n\`\`\`mermaid\nclassDiagram\n  class Repo{\n    +string name\n    +clone()\n  }\n\`\`\`\n`
-    }[k];
-    replaceSelection(mdEl, ex || ''); update();
-  };
-
-  $('#addSection').onclick = () => {
-    const sel = $('#section').value;
-    const map = {
-      'Header com Badges': `# Nome do Projeto\n\n[![build](https://img.shields.io/badge/build-passing-brightgreen)](#) [![license](https://img.shields.io/badge/license-MIT-blue)](#)\n\nBreve descrição do que o projeto faz.\n\n---\n`,
-      'Resumo / Pitch': `## Resumo\nExplique o problema, a solução e o impacto em 3–4 linhas.\n`,
-      'Instalação': `## Instalação\n\n\`\`\`bash\n# ex.:\nnpm i\n# ou\npip install pacote\n\`\`\`\n`,
-      'Uso': `## Uso\n\n\`\`\`bash\ncomando --help\n\`\`\`\n`,
-      'Exemplos': `## Exemplos\n- Exemplo 1\n- Exemplo 2\n`,
-      'Screenshots': `## Screenshots\n\n![Descrição](imgs/screenshot1.png)\n`,
-      'Roadmap': `## Roadmap\n- [ ] Item 1\n- [ ] Item 2\n`,
-      'Contribuindo': `## Contribuindo\nPRs são bem-vindos. Para mudanças maiores, abra uma issue.\n`,
-      'Licença (MIT)': `## Licença\nMIT © Seu Nome\n`,
-      'TOC (sumário)': `## Sumário\n<!-- o botão TOC automático gera a lista aqui -->\n`
-    };
-    let block = map[sel] || '';
-    if (block) { replaceSelection(mdEl, '\n' + block + '\n'); update(); }
-  };
+  bindInsertionTools(mdEl, update);
 
   // Gera template por stack
   $('#gen').onclick = () => {
-    const s = $('#stack').value;
+    const s = ($('#stack') as HTMLInputElement).value;
     log('Gen template stack=', s);
     if (!s) return alert('Escolha uma stack');
     if (!TPL[s]) return alert('Template não encontrado para ' + s);
@@ -321,7 +378,8 @@ export function bindUI(): void {
     if (useEmoji?.checked) {
       md = applyEmojis(md, true);
     }
-    mdEl.value = md; update();
+    mdEl.value = md;
+    update();
   };
 
   $('#tocAuto').addEventListener('click', () => {
@@ -341,22 +399,6 @@ export function bindUI(): void {
     else if (e.ctrlKey && !e.shiftKey && k === 'm') { e.preventDefault(); $('#toggleAdv').click(); }
   });
 
-  function renderLint(res: { issues: { sev: string; msg: string; line?: number }[] }): void {
-    const panel = $('#lintPanel') as HTMLElement;
-    const list = $('#lintList') as HTMLElement;
-    const sum = $('#lintSummary') as HTMLElement;
-    list.innerHTML = '';
-    let errs = 0, warns = 0;
-    res.issues.forEach(it => { if (it.sev === 'err') errs++; else if (it.sev === 'warn') warns++; });
-    sum.textContent = `Erros: ${errs} • Avisos: ${warns} • Itens: ${res.issues.length}`;
-    res.issues.forEach(it => {
-      const li = document.createElement('li');
-      li.className = it.sev;
-      li.textContent = (it.line ? `L${it.line}: ` : '') + it.msg;
-      list.appendChild(li);
-    });
-    panel.hidden = false;
-  }
   ($('#lint') as HTMLElement).onclick = () => {
     const res = lintMarkdown(mdEl.value) as { issues: { sev: string; msg: string; line?: number }[] };
     renderLint(res);
