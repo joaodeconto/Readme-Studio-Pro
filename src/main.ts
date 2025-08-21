@@ -1,5 +1,5 @@
 
-import { bindUI as bindUIImported } from '@ui/bindToolbar.js';
+import { bindUI as bindUIImported } from '@ui/bindToolbar';
 import { log as logImported } from './utils/log';
 
 const bindUI: () => void = bindUIImported;

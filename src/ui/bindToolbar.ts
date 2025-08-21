@@ -1,7 +1,7 @@
 import { $, $$ } from '../utils/dom';
 import { log } from '../utils/log';
-import { mdToHtml } from '../render/markdown.js';
-import { highlightAll } from '../render/highlight.js';
+import { mdToHtml } from '../render/markdown';
+import { highlightAll } from '../render/highlight';
 import { applyEmojis } from '../features/emoji';
 import { buildTOC } from '../features/toc';
 import { toList, toCode, replaceSelection, getSelectionRanges } from '../features/insert.js';
