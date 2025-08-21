@@ -10,7 +10,8 @@
     "lint": "next lint",
     "lint:pages": "./scripts/find-next15-params.sh"
   },
-  "dependencies": {    
-  "packageManager": "pnpm@9"
+  "packageManager": "pnpm@9.0.0",
+  "dependencies": {
+    "diff-match-patch-es": "^1.0.1"
   }
 }

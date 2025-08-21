@@ -3,7 +3,7 @@ import Button from '../ui/button';
 import { useEditorStore } from '../../state/editor';
 import { useState } from 'react';
 import { lintMarkdown, type LintMarkdownResult } from '../../../utils/lint';
-import DiffMatchPatch from 'diff-match-patch';
+import { diff as diffStrings, diffCleanupSemantic, diffPrettyHtml } from 'diff-match-patch-es';
 import { useAnalysisStore } from '../../state/analysis';
 
 export default function AnalysisBar({
@@ -30,10 +30,9 @@ export default function AnalysisBar({
   };
 
   const preview = () => {
-    const dmp = new DiffMatchPatch();
-    const diff = dmp.diff_main(original, content);
-    dmp.diff_cleanupSemantic(diff);
-    setDiffHtml(dmp.diff_prettyHtml(diff));
+    const diffs = diffStrings(original, content);
+    diffCleanupSemantic(diffs);
+    setDiffHtml(diffPrettyHtml(diffs));
   };
 
   return (
@@ -58,3 +57,4 @@ export default function AnalysisBar({
     </div>
   );
 }
+
