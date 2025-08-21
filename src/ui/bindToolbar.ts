@@ -6,11 +6,12 @@ import { applyEmojis } from '../features/emoji.js';
 import { buildTOC } from '../features/toc.js';
 import { toList, toCode, replaceSelection, getSelectionRanges } from '../features/insert.js';
 import { TPL } from '../features/templates.js';
-import { attachHistory } from '../state/history.js';
+import { attachHistory } from '../state/history.ts';
 import { lintMarkdown } from '../utils/lint';
 import { analisarRepo, proporPR } from '../github/fetch.js';
-import { state as rawState, setAnalysis, setPR } from '../state/store.js';
+import { state, setAnalysis, setPR } from '../state/store.ts';
 import DiffMatchPatch from 'diff-match-patch';
+
 
 interface RepoAnalysis {
   base_sha?: string;
