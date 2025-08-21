@@ -1,11 +1,19 @@
 // Simple undo/redo stack (max 20)
-export function attachHistory(textarea, onApply) {
-    const MAX = 20;
-    const stack = [];
-    let idx = -1;
-    let pendingTimer = null;
 
-    function push(state) {
+export interface HistoryStack {
+    undo(): void;
+    redo(): void;
+    canUndo(): boolean;
+    canRedo(): boolean;
+}
+
+export function attachHistory(textarea: HTMLTextAreaElement, onApply?: () => void): HistoryStack {
+    const MAX = 20;
+    const stack: string[] = [];
+    let idx = -1;
+    let pendingTimer: number | null = null;
+
+    function push(state: string): void {
         if (stack[idx] === state) return;
         stack.splice(idx + 1);
         stack.push(state);
@@ -18,37 +26,40 @@ export function attachHistory(textarea, onApply) {
 
     push(textarea.value);
 
-    function apply(state) {
+    function apply(state: string): void {
         textarea.value = state;
         if (typeof onApply === 'function') onApply();
     }
 
-    function undo() {
+    function undo(): void {
         if (idx <= 0) return;
         idx--;
         apply(stack[idx]);
     }
 
-    function redo() {
+    function redo(): void {
         if (idx >= stack.length - 1) return;
         idx++;
         apply(stack[idx]);
     }
 
-    function recordSoon() {
-        clearTimeout(pendingTimer);
-        pendingTimer = setTimeout(() => {
+    function recordSoon(): void {
+        if (pendingTimer !== null) {
+            clearTimeout(pendingTimer);
+        }
+        pendingTimer = window.setTimeout(() => {
             if (textarea.value !== stack[idx]) push(textarea.value);
         }, 250);
     }
 
     textarea.addEventListener('input', recordSoon);
 
-    textarea.addEventListener('keydown', (e) => {
+    textarea.addEventListener('keydown', (e: KeyboardEvent) => {
         const mod = e.metaKey || e.ctrlKey;
         if (!mod) return;
-        if (e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
-        if ((e.key.toLowerCase() === 'z' && e.shiftKey) || (e.key.toLowerCase() === 'y')) { e.preventDefault(); redo(); }
+        const key = e.key.toLowerCase();
+        if (key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+        if ((key === 'z' && e.shiftKey) || key === 'y') { e.preventDefault(); redo(); }
     });
 
     return { undo, redo, canUndo: () => idx > 0, canRedo: () => idx < stack.length - 1 };
