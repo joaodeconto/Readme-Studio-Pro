@@ -1,12 +1,15 @@
-import '../ui/styles/globals.css';
-import '../ui/styles/tokens.css';
+import Providers from '../lib/utils/providers';
+import AppSidebar from '@ui/components/shell/AppSidebar';
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
-export const metadata = { title: 'README Studio • Pro' };
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function WebLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <body>{children}</body>
-    </html>
+    <Providers>
+      <div className="flex h-dvh">
+        <AppSidebar />
+        <div className="flex-1 flex flex-col">{children}</div>        
+        <SpeedInsights />
+      </div>
+    </Providers>
   );
 }
