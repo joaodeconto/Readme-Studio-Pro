@@ -7,9 +7,9 @@ export const runtime = "nodejs";
 
 export async function GET(
   req: NextRequest,
-  context: any
+  context: { params: { owner: string; repo: string } },
 ) {
-  const { owner, repo } = context.params as { owner: string; repo: string };
+  const { owner, repo } = context.params;
   const installationId = await findInstallationIdForRepo(owner, repo);
   const octokit = await githubApp.getInstallationOctokit(installationId);
 
@@ -23,8 +23,9 @@ export async function GET(
       status: 200,
       headers: { "content-type": "text/markdown; charset=utf-8" },
     });
-  } catch (e: any) {
-    const status = e.status || 500;
+  } catch (e: unknown) {
+    const err = e as { status?: number };
+    const status = err.status || 500;
     console.error("[repos/readme]", e);
     return NextResponse.json({ error: "Internal error" }, { status });
   }

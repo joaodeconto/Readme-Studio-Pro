@@ -1,6 +1,7 @@
 "use client";
 import type { ChangeEvent } from 'react';
 import { useState } from 'react';
+import Image from 'next/image';
 import Button from '../../ui/button';
 
 export interface Asset {
@@ -59,9 +60,11 @@ export default function AssetPicker({ assets, onSelect, onUpload }: AssetPickerP
             className="border rounded p-1 flex flex-col items-center text-xs hover:bg-subtle"
             onClick={() => onSelect(asset)}
           >
-            <img
+            <Image
               src={asset.url}
               alt={asset.name}
+              width={80}
+              height={80}
               className="w-full h-20 object-cover mb-1"
             />
             <span className="truncate w-full text-center">{asset.name}</span>

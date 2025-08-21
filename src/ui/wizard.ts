@@ -53,9 +53,15 @@ export async function openWizard(): Promise<WizardResult | null> {
           installation_id = sel.value;
           step2();
         };
-      } catch (e: any) {
-        alert(e.message === 'NETWORK_FAILURE' ? 'Falha de rede ao listar instalações.' : 'Erro: ' + e.message);
-        modal.remove(); resolve(null);
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        alert(
+          msg === 'NETWORK_FAILURE'
+            ? 'Falha de rede ao listar instalações.'
+            : 'Erro: ' + msg,
+        );
+        modal.remove();
+        resolve(null);
         showError('Não foi possível carregar instalações', step1);
       }
     }
@@ -85,9 +91,15 @@ export async function openWizard(): Promise<WizardResult | null> {
           [owner, repo] = (li as HTMLLIElement).dataset.full!.split('/');
           step3();
         };
-      } catch (e: any) {
-        alert(e.message === 'NETWORK_FAILURE' ? 'Falha de rede ao listar repositórios.' : 'Erro: ' + e.message);
-        modal.remove(); resolve(null);
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        alert(
+          msg === 'NETWORK_FAILURE'
+            ? 'Falha de rede ao listar repositórios.'
+            : 'Erro: ' + msg,
+        );
+        modal.remove();
+        resolve(null);
         showError('Não foi possível carregar repositórios', step2);
       }
     }
@@ -96,9 +108,16 @@ export async function openWizard(): Promise<WizardResult | null> {
       let info: ReadmeInfo;
       try {
         info = await discoverReadme(Number(installation_id), owner, repo);
-      } catch (e: any) {
-        alert(e.message === 'NETWORK_FAILURE' ? 'Falha de rede ao obter README.' : 'Erro: ' + e.message);
-        modal.remove(); resolve(null); return;
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        alert(
+          msg === 'NETWORK_FAILURE'
+            ? 'Falha de rede ao obter README.'
+            : 'Erro: ' + msg,
+        );
+        modal.remove();
+        resolve(null);
+        return;
       }
       ref = info.ref || 'main';
       readme_path = info.readme_path || 'README.md';
@@ -115,8 +134,13 @@ export async function openWizard(): Promise<WizardResult | null> {
           const { text: readme, sha }: ReadmeData = await fetchReadme({ owner, repo, branch: ref, path: readme_path });
           modal.remove();
           resolve({ installation_id, owner, repo, ref, readme_path, readme, base_sha: sha });
-        } catch (err: any) {
-          alert(err.message === 'NETWORK_FAILURE' ? 'Falha de rede ao baixar README.' : 'Erro: ' + err.message);
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : String(err);
+          alert(
+            msg === 'NETWORK_FAILURE'
+              ? 'Falha de rede ao baixar README.'
+              : 'Erro: ' + msg,
+          );
           showError('Não foi possível carregar README', step3);
         }
       };

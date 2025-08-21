@@ -41,10 +41,10 @@ export function useUpdateFile() {
     onMutate: async () => {
       // Lógica para mostrar estado "saving…"
     },
-    onError: (err, variables, context) => {
+    onError: () => {
       // Lógica para rollback (se necessário)
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Atualize sha e estado de sincronização aqui
     },
   });
