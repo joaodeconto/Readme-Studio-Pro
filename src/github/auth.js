@@ -1,21 +1,24 @@
 const TOKEN_KEY = 'readmeStudioProAuth';
 
 export function getToken() {
+  if (typeof window === 'undefined') return null;
   try {
-    return localStorage.getItem(TOKEN_KEY);
+    return window.localStorage.getItem(TOKEN_KEY);
   } catch {
     return null;
   }
 }
 
 export function setToken(tok) {
+  if (typeof window === 'undefined') return;
   try {
-    if (tok) localStorage.setItem(TOKEN_KEY, tok);
-    else localStorage.removeItem(TOKEN_KEY);
+    if (tok) window.localStorage.setItem(TOKEN_KEY, tok);
+    else window.localStorage.removeItem(TOKEN_KEY);
   } catch {}
 }
 
 export async function startAuthFlow() {
+  if (typeof window === 'undefined') return null;
   const existing = getToken();
   if (existing) return existing;
 

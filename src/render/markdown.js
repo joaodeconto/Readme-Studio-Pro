@@ -1,5 +1,6 @@
 import { slug } from '../utils/slug';
 import { emojifyTitle } from '../features/emoji';
+import DOMPurify from 'isomorphic-dompurify';
 
 function linkify(s) { return s.replace(/\bhttps?:\/\/[^\s)]+/g, url => `<a href="${url}" target="_blank" rel="noopener">${url}</a>`); }
 
@@ -30,6 +31,13 @@ export function mdToHtml(src, { emojify = false } = {}) {
   });
   src = src.replace(/(<tr>.*?<\/tr>\n?)+/gs, m => '<table>' + m + '</table>');
 
-  src = src.split(/\n{2,}/).map(blk => /^\s*<(h\d|ul|ol|pre|table|blockquote|details|img|a)/.test(blk) ? blk : `<p>${linkify(blk).replace(/\n/g, '<br>')}</p>`).join('\n');
-  return src;
+  src = src
+    .split(/\n{2,}/)
+    .map(blk =>
+      /^\s*<(h\d|ul|ol|pre|table|blockquote|details|img|a)/.test(blk)
+        ? blk
+        : `<p>${linkify(blk).replace(/\n/g, '<br>')}</p>`
+    )
+    .join('\n');
+  return DOMPurify.sanitize(src);
 }

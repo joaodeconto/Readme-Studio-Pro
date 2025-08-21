@@ -53,11 +53,10 @@ export function emojifyTitle(title: string, level = 2, force = false): string {
 
 export function applyEmojis(md: string, enabled: boolean): string {
   if (!enabled) return md;
-  md = md.replace(/^######\s+(.+)$/gm, (m, t) => `###### ${emojifyTitle(t, 6, true)}`);
-  md = md.replace(/^#####\s+(.+)$/gm, (m, t) => `##### ${emojifyTitle(t, 5, true)}`);
-  md = md.replace(/^####\s+(.+)$/gm, (m, t) => `#### ${emojifyTitle(t, 4, true)}`);
-  md = md.replace(/^###\s+(.+)$/gm, (m, t) => `### ${emojifyTitle(t, 3, true)}`);
-  md = md.replace(/^##\s+(.+)$/gm, (m, t) => `## ${emojifyTitle(t, 2, true)}`);
-  md = md.replace(/^#\s+(.+)$/gm, (m, t) => `# ${emojifyTitle(t, 1, true)}`);
+  for (let level = 6; level >= 1; level--) {
+    const prefix = '#'.repeat(level);
+    const re = new RegExp(`^${prefix}\\s+(.+)$`, 'gm');
+    md = md.replace(re, (m, t) => `${prefix} ${emojifyTitle(t, level, true)}`);
+  }
   return md;
 }
