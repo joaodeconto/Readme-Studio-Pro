@@ -11,12 +11,14 @@ export function log(...args: unknown[]): void {
     .join(' ');
   const ts = new Date().toISOString().slice(11, 19);
   LOG.push(`[${ts}] ${line}`);
-  const panel = document.getElementById('dbgPanel') as HTMLElement | null;
-  const toggle = document.getElementById('showDbg') as HTMLInputElement | null;
-  if (panel && toggle?.checked) {
-    panel.hidden = false;
-    panel.textContent = LOG.join('\n');
-    panel.scrollTop = panel.scrollHeight;
+  if (typeof document !== 'undefined') {
+    const panel = document.getElementById('dbgPanel') as HTMLElement | null;
+    const toggle = document.getElementById('showDbg') as HTMLInputElement | null;
+    if (panel && toggle?.checked) {
+      panel.hidden = false;
+      panel.textContent = LOG.join('\n');
+      panel.scrollTop = panel.scrollHeight;
+    }
   }
   console.log('[README-STUDIO]', ...args);
 }
