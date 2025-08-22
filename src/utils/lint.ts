@@ -1,6 +1,6 @@
 import { githubSlugify as slug } from './githubSlug';
 import MarkdownIt from 'markdown-it';
-import type { Token } from 'markdown-it';
+import type Token from 'markdown-it/lib/token.mjs';
 
 const mdParser = new MarkdownIt();
 

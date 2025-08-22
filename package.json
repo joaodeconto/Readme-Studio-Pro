@@ -21,7 +21,8 @@
     "posthog-js": "^1.260.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-i18next": "^15.7.1"
+    "react-i18next": "^15.7.1",
+    "tailwindcss": "^4.1.12"
   },
   "devDependencies": {
     "@codemirror/lang-markdown": "^6.3.4",
