@@ -6,6 +6,7 @@
 
 import { NextResponse } from "next/server";
 import { githubApp } from "@/lib/github/app";
+import { prisma } from "@/lib/db/client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,6 +26,12 @@ export async function GET(req: Request) {
   }
 
   const installationId = await findInstallationIdForRepo(owner, repo);
+  if (!installationId) {
+    return NextResponse.json(
+      { error: "Installation not found" },
+      { status: 404 }
+    );
+  }
   const octokit = await githubApp.getInstallationOctokit(installationId);
 
   try {
@@ -118,12 +125,12 @@ export async function GET(req: Request) {
   }
 }
 
-// TODO: implemente lookup real via DB/webhook `installation.created`.
 async function findInstallationIdForRepo(
   owner: string,
   repo: string,
-): Promise<number> {
-  void owner;
-  void repo;
-  throw new Error("findInstallationIdForRepo not implemented");
+): Promise<number | null> {
+  const link = await prisma.repoLink.findFirst({
+    where: { owner, repo },
+  });
+  return link?.installationId ?? null;
 }
