@@ -5,6 +5,14 @@ agent_v1.md → Documento original, intacto.
 /AGENTS/ → Pasta com agentes por domínio.
 
 🤖 Agentes Ativos
+agent_docs.md
+
+Escopo: explicar e documentar
+
+Responsabilidades:
+
+Comentar códigos, ponderar decisões, compreender 
+
 agent_ui.md
 
 Escopo: migração do editor e UX.
@@ -52,16 +60,6 @@ Mapear código não modular.
 Definir rota de migração.
 
 Garantir compatibilidade com Next.js.
-
-agent_template.md
-
-Escopo: documento base para novos agentes.
-
-Responsabilidades:
-
-Copiar este modelo ao criar novo agent.
-
-Preencher escopo, responsabilidades, fluxo.
 
 📖 Regras
 

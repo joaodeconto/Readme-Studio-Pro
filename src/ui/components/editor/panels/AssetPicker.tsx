@@ -1,6 +1,7 @@
 "use client";
 import type { ChangeEvent } from 'react';
 import { useState } from 'react';
+import { useMemo } from 'react';
 import Image from 'next/image';
 import Button from '../../ui/button';
 
@@ -27,9 +28,10 @@ export default function AssetPicker({ assets, onSelect, onUpload }: AssetPickerP
     }
   };
 
-  const filtered = assets.filter((a) =>
-    a.name.toLowerCase().includes(query.toLowerCase()),
-  );
+  const filtered = useMemo(
+  () => assets.filter(a => a.name.toLowerCase().includes(query.toLowerCase())),
+  [assets, query]
+);
 
   return (
     <div className="flex flex-col gap-2">
