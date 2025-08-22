@@ -1,12 +1,20 @@
-import { test, expect } from 'vitest';
+import { test, expect, vi } from 'vitest';
+
 
 (globalThis as unknown as { localStorage: Storage }).localStorage = {
-  getItem: (_: string): string | null => null
+  getItem: (_: string): string | null => null,
 };
 
 (globalThis as unknown as { document: Document }).document = {
-  getElementById: (_: string): HTMLElement | null => null
+  getElementById: (_: string): HTMLElement | null => null,
 } as Document;
+
+const mockGet = vi.fn();
+vi.mock('octokit', () => ({
+  Octokit: vi.fn().mockImplementation(() => ({
+    rest: { repos: { get: mockGet } },
+  })),
+}));
 
 const { __TESTING__ } = await import('../src/github/fetch.ts');
 const { discoverDefaultBranch } = __TESTING__ as {
@@ -14,19 +22,13 @@ const { discoverDefaultBranch } = __TESTING__ as {
 };
 
 test('discoverDefaultBranch uses API default_branch', async () => {
-  const originalFetch: typeof fetch = global.fetch;
-  global.fetch = async (): Promise<Response> =>
-    new Response(JSON.stringify({ default_branch: 'dev' }), { status: 200 });
+  mockGet.mockResolvedValue({ data: { default_branch: 'dev' } });
   const branch: string = await discoverDefaultBranch('owner', 'repo');
   expect(branch).toBe('dev');
-  global.fetch = originalFetch;
 });
 
 test('discoverDefaultBranch defaults to main when absent', async () => {
-  const originalFetch: typeof fetch = global.fetch;
-  global.fetch = async (): Promise<Response> =>
-    new Response('{}', { status: 200 });
+  mockGet.mockResolvedValue({ data: {} });
   const branch: string = await discoverDefaultBranch('owner', 'repo');
   expect(branch).toBe('main');
-  global.fetch = originalFetch;
 });
