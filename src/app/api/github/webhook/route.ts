@@ -1,4 +1,4 @@
-import type { NextRequest} from "next/server";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { verifyGitHubWebhook } from "@/lib/github/verify";
 import { prisma } from "@/lib/db/client";
@@ -46,11 +46,36 @@ export async function POST(req: NextRequest) {
         message: payload.head_commit?.message,
       });
       break;
-    case "installation":
+    case "installation": {
       logger.info("github.installation", {
         installationId: payload.installation?.id,
       });
+      if (payload.action === "created" && payload.installation?.id) {
+        const repos = (payload.repositories as Array<{ full_name: string }>) || [];
+        for (const r of repos) {
+          const [owner, name] = r.full_name.split("/");
+          if (!owner || !name) continue;
+          const existing = await prisma.repoLink.findFirst({
+            where: { owner, repo: name },
+          });
+          if (existing) {
+            await prisma.repoLink.update({
+              where: { id: existing.id },
+              data: { installationId: payload.installation.id },
+            });
+          } else {
+            await prisma.repoLink.create({
+              data: {
+                owner,
+                repo: name,
+                installationId: payload.installation.id,
+              },
+            });
+          }
+        }
+      }
       break;
+    }
     default:
       break;
   }
