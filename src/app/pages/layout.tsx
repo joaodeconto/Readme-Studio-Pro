@@ -1,6 +1,5 @@
 'use client';
 
-import '@ui/styles/globals.css';
 import { usePathname } from 'next/navigation';
 import AppSidebar from '@ui/components/shell/AppSidebar';
 import { Providers } from '@/lib/utils/providers';
