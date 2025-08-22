@@ -1,13 +1,15 @@
-import Providers from '../lib/utils/providers';
+import { PostHogProvider as PHRaw } from 'posthog-js/react'
+type PHProviderType = React.ComponentType<React.PropsWithChildren<{ client: any }>>
+const PostHogProvider = PHRaw as unknown as PHProviderType
 import AppSidebar from '@ui/components/shell/AppSidebar';
 
 export default function WebLayout({ children }: { children: React.ReactNode }) {
   return (
-    <Providers>
+    <PostHogProvider client={children}>
       <div className="flex h-dvh">
         <AppSidebar />
         <div className="flex-1 flex flex-col">{children}</div>    
       </div>
-    </Providers>
+    </PostHogProvider >
   );
 }

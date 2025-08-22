@@ -34,7 +34,7 @@ export async function discoverInstallations(): Promise<{
     return {
       items: data.installations.map((i) => ({
         installation_id: i.id,
-        account_login: i.account?.login ?? undefined,
+        account_login: i.account?.name ?? undefined,
       })),
     };
   } catch (e: any) {

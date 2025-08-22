@@ -1,51 +1,58 @@
-"use client";
-import { useEffect, useState, type ReactNode, type ComponentType } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { I18nextProvider } from "react-i18next";
-import i18n from "./i18n";
+'use client'
 
-declare global {
-  interface Window {
-    __PHInitialized?: boolean;
-  }
+
+import React, { PropsWithChildren } from 'react'
+
+
+// ⬇️ Se você estiver fazendo import dinâmico do PostHogProvider em outro arquivo,
+// copie apenas o trecho do *type* e o uso do componente. A ideia é garantir que o
+// PostHogProvider aceite `children` no nível de tipos.
+
+
+// 1) Defina um tipo que inclua `children` de forma explícita
+export type PHProviderType = React.ComponentType<
+PropsWithChildren<{ client: any }>
+>
+
+
+// 2) Garanta que a variável que guarda o provider use esse tipo
+// (se você já tem isso em outro lugar, ajuste apenas o *as PHProviderType*)
+let PostHogProviderTyped: PHProviderType | null = null
+let posthogClient: any = null
+
+
+// Exemplo de inicialização (opcional) — ajuste ao seu projeto
+// Se você já inicializa em outro arquivo, remova este bloco.
+if (typeof window !== 'undefined') {
+;(async () => {
+const ph = await import('posthog-js')
+const react = await import('posthog-js/react')
+
+
+// Inicialize somente se tiver chave
+const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
+if (key) {
+ph.default.init(key, { api_host: 'https://app.posthog.com' })
+posthogClient = ph.default
+PostHogProviderTyped = (react as any).PostHogProvider as PHProviderType
+}
+})()
 }
 
-export default function Providers({ children }: { children: ReactNode }) {
-  const [qc] = useState(() => new QueryClient());
-  const [posthog, setPosthog] = useState<any>(null);
-  const [PostHogProvider, setPostHogProvider] =
-    useState<ComponentType<{ client: any }> | null>(null);
 
-  useEffect(() => {
-    if (typeof window === "undefined" || window.__PHInitialized) return;
+// 3) Provider raiz da sua aplicação
+// Uso: envolva seu layout com <Providers> ... </Providers>
+export function Providers({ children }: PropsWithChildren) {
+// Conteúdo bruto (sem PostHog)
+const content = <>{children}</>
 
-    Promise.all([import("posthog-js"), import("posthog-js/react")]).then(
-      ([ph, react]) => {
-        const client = ph.default;
-        const token = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-        if (token) {
-          client.init(token, {
-            api_host:
-              process.env.NEXT_PUBLIC_POSTHOG_HOST ||
-              "https://app.posthog.com",
-            capture_pageview: true,
-            capture_pageleave: true,
-          });
-          window.__PHInitialized = true;
-        }
-        setPosthog(client);
-        setPostHogProvider(() => react.PostHogProvider);
-      }
-    );
-  }, []);
 
-  const content = (
-    <I18nextProvider i18n={i18n}>
-      <QueryClientProvider client={qc}>{children}</QueryClientProvider>
-    </I18nextProvider>
-  );
+// Se não deu para inicializar PostHog, retorna direto
+if (!PostHogProviderTyped || !posthogClient) return content
 
-  if (!PostHogProvider || !posthog) return content;
 
-  return <PostHogProvider client={posthog}>{content}</PostHogProvider>;
+// ✅ Aqui o tipo do componente aceita `children`
+return (
+<PostHogProviderTyped client={posthogClient}>{content}</PostHogProviderTyped>
+)
 }
