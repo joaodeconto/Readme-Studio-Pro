@@ -2,6 +2,7 @@ import type { NextRequest} from "next/server";
 import { NextResponse } from "next/server";
 import { verifyGitHubWebhook } from "@/lib/github/verify";
 import { prisma } from "@/lib/db/client";
+import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -39,15 +40,16 @@ export async function POST(req: NextRequest) {
 
   switch (event) {
     case "push":
-      console.log(
-        "push",
-        payload.repository?.full_name,
-        payload.head_commit?.id,
-        payload.head_commit?.message
-      );
+      logger.info("github.push", {
+        repo: payload.repository?.full_name,
+        commit: payload.head_commit?.id,
+        message: payload.head_commit?.message,
+      });
       break;
     case "installation":
-      console.log("installation", payload.installation?.id);
+      logger.info("github.installation", {
+        installationId: payload.installation?.id,
+      });
       break;
     default:
       break;
