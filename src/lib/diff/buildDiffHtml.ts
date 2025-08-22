@@ -23,8 +23,10 @@ function prettyHtmlLocal(diffs: DiffTuple[]) {
 }
 
 /** Constrói HTML de diff (com cleanup) usando diff-match-patch-es */
-export function buildDiffHtml(a: string, b: string): unknown {
-  const diffs = dmpDiff(a, b);
-  const cleaned = dmpCleanup ? (dmpCleanup(diffs) as unknown) : diffs;
-  return prettyHtmlLocal(cleaned as DiffTuple[]);
+export function buildDiffHtml(a: string, b: string): string {
+  const diffs = dmpDiff(a, b) as DiffTuple[];
+  if (typeof dmpCleanup === "function"){
+    dmpCleanup(diffs);
+  }
+  return prettyHtmlLocal(diffs);
 }
