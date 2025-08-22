@@ -1,7 +1,7 @@
 "use client";
 import Button from '../ui/button';
 import { useEditorStore } from '../../state/editor';
-import { useState} from 'react';
+import { useState } from 'react';
 import { lintMarkdown, type LintMarkdownResult } from '../../../utils/lint';
 import { buildDiffHtml } from "@/lib/diff/buildDiffHtml";
 import { useAnalysisStore } from '../../state/analysis';
@@ -14,7 +14,7 @@ export default function AnalysisBar({
   const { content } = useEditorStore();
   const [analysis, setAnalysis] = useState<LintMarkdownResult | null>(null);
   const [original, setOriginal] = useState('');
-  //const [diffHtml, setDiffHtml] = useState<string | null>(null);
+  const [diffHtml, setDiffHtml] = useState<string | null>(null);
   const { setLintIssues, setAISuggestions } = useAnalysisStore();
 
   const analyze = () => {
@@ -32,7 +32,8 @@ export default function AnalysisBar({
   const preview = () => {
     const a = (original ?? "").toString();
     const b = (content ?? "").toString();
-    buildDiffHtml(a, b);
+    const diff = buildDiffHtml(a, b);
+    setDiffHtml(diff);
   };
 
   return (
@@ -48,10 +49,10 @@ export default function AnalysisBar({
           {JSON.stringify(analysis.issues, null, 2)}
         </pre>
       )}
-      {preview && (
+      {diffHtml && (
         <div
           className="diff md p-2 overflow-auto border rounded"
-          dangerouslySetInnerHTML={{ __html: preview }}
+          dangerouslySetInnerHTML={{ __html: diffHtml }}
         />
       )}
     </div>
