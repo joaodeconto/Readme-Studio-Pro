@@ -5,6 +5,9 @@ agent_v1.md → Documento original, intacto.
 /AGENTS/ → Pasta com agentes por domínio.
 
 README.md → Guia principal do projeto (propósito, setup, scripts).
+CHANGELOG.md → Histórico de mudanças.
+CONTRIBUTING.md → Guia de contribuição.
+CODE_OF_CONDUCT.md → Código de conduta.
 
 🤖 Agentes Ativos
 agent_docs.md

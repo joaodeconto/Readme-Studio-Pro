@@ -14,6 +14,9 @@ pnpm dev
 
 ### Docs relacionados
 
+- [CHANGELOG](CHANGELOG.md)
+- [Guia de Contribuição](CONTRIBUTING.md)
+- [Código de Conduta](CODE_OF_CONDUCT.md)
 - [Deploy](docs/deploy.md)
 - [Pitch](docs/pitch.md)
 - [validateRelPaths performance](docs/validateRelPaths-performance.md)
