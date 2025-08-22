@@ -91,17 +91,14 @@ export async function discoverReadme(
 }
 
 async function discoverDefaultBranch(owner: string, repo: string): Promise<string> {
-  const url = `https://api.github.com/repos/${owner}/${repo}`;
+  const octokit = getOctokit();
   try {
-    const r = await fetch(url);
-    const data = await r.json().catch(() => ({} as { default_branch?: string }));
-    if (!r.ok) {
-      if (r.status === 404) throw new Error('NOT_FOUND_REPO_OR_PRIVATE');
-      throw new Error('Falha ao obter repo');
-    }
+    const { data } = await octokit.rest.repos.get({ owner, repo });
     return data.default_branch || 'main';
-  } catch (e) {
-    throw new Error('NETWORK_FAILURE');
+  } catch (e: any) {
+    if (!('status' in (e ?? {}))) throw new Error('NETWORK_FAILURE');
+    if (e.status === 404) throw new Error('NOT_FOUND_REPO_OR_PRIVATE');
+    throw new Error('Falha ao obter repo');
   }
 }
 
