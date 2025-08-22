@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { BookOpen, Boxes, Settings, GitBranch, Layout, Bot } from 'lucide-react';
 
 const items = [
-  { href: '/pages', icon: Layout, label: 'Dashboard' },
+  { href: '/pages/Marketing', icon: Layout, label: 'Dashboard' },
   { href: '/pages/repositories', icon: GitBranch, label: 'Repositories' },
-  { href: '/pages/editor/owner/repo', icon: BookOpen, label: 'README Studio' },
+  { href: '/pages/editor/owner/repo', icon: BookOpen, label: 'Editor' },
   { href: '/pages/templates', icon: Boxes, label: 'Templates' },
   { href: '/pages/automations', icon: Bot, label: 'Automations' },
   { href: '/pages/settings', icon: Settings, label: 'Settings' },

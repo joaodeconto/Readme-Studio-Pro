@@ -1,7 +1,7 @@
 # 🤖 Agent Docs — Documentação & Comentários
 
 * **Domínio:** Documentação de produto e técnica (READMEs, guias de uso, ADRs), comentários de código (TSDoc/JSDoc), changelog e padrões de escrita.
-* **Escopo/Tarefa Atual:** *\[preencher — ex.: padronizar README do editor e comentar hooks críticos]*
+* **Escopo/Tarefa Atual:** *Atualização Constante de Docs*
 
 > Princípios do time: passos lentos e explicações claras; código bem documentado; scripts modulares; preferir abrir conteúdo em canvas quando longo; sugerir uso de outro agente quando a integração for complexa.
 
@@ -83,89 +83,6 @@ export function useEditorShortcuts(ref: RefObject<HTMLTextAreaElement>, handlers
 * **Idiomas**: PT como padrão; se público externo, PT/EN lado a lado nas seções principais.
 * **Acessibilidade**: headings hierárquicos, listas curtas, tabelas quando houver parâmetros.
 
-### Template de README de Módulo
-
-````md
-# <nome-do-módulo>
-
-**Para quê?**
-Breve descrição do problema que resolve.
-
-## Como usar
-```ts
-// exemplo mínimo de import/uso
-````
-
-## API
-
-* `funçãoA(x: T): R` — o que faz, quando usar.
-* `funçãoB(...)` — notas importantes.
-
-## Decisões
-
-* Por que escolhemos <lib> / trade-offs.
-
-## Testes
-
-Como rodar e o que cobrem.
-
-````
-
-### Template de ADR
-```md
-# ADR-<número>: <título>
-- Data: YYYY-MM-DD
-- Status: proposta | aceita | deprecada
-- Contexto: <problema/constraints>
-- Decisão: <o que foi decidido>
-- Consequências: <positivas/negativas>
-- Alternativas consideradas: <lista>
-````
-
-### Template de PR (Documentação)
-
-```md
-### Tipo
-- [ ] Docs
-- [ ] Comentários Código
-
-### Motivo
-<qual lacuna resolveu>
-
-### Mudanças
-- README em <pasta>
-- Comentários em <arquivo.ts>
-
-### Agent
-Mudança guiada por **agent_docs**.
-```
-
----
-
-## 🧰 Ferramentas e Linters
-
-* **markdownlint** + **prettier** (formatação MD).
-* **remark-lint** (+ `lint-no-dead-urls` para links).
-* **typedoc** (gerar docs de API TS quando útil).
-* **tsdoc** checker (consistência dos comentários).
-* **doctest** simples para exemplos (quando aplicável).
-
-### Scripts sugeridos
-
-```json
-{
-  "scripts": {
-    "docs:lint": "remark . -qf",
-    "docs:fmt": "prettier --write \"**/*.{md,mdx}\"",
-    "docs:build": "typedoc",
-    "docs:check": "npm run docs:fmt && npm run docs:lint"
-  }
-}
-```
-
----
-
-## ✅ Checklist por PR
 
 * [ ] Procurou docs/comentários existentes para reuso?
 * [ ] Atualizou/Deprecou docs legacy correlatos?
@@ -187,8 +104,8 @@ Mudança guiada por **agent_docs**.
 
 ## 🔗 Integração com outros Agents
 
+* **agent\_v1**: desenvolvimento genérico.
 * **agent\_ui**: screenshots, GIFs curtos, secções de UX nas docs.
-* **agent\_lint**: especificar regras/documentar lint e mensagens.
 * **agent\_github**: exemplos de PR flow e permissões.
 * **agent\_migration**: ADRs para trocas de libs/arquitetura.
 
@@ -202,12 +119,3 @@ Mudança guiada por **agent_docs**.
 * Comentários: no próprio código (TSDoc/JSDoc).
 * Changelog: `CHANGELOG.md` na raiz.
 
----
-
-## 🗺️ Roadmap (sugestão)
-
-* [ ] Mapear módulos sem README.
-* [ ] Criar ADR inicial: “Migração do editor para React idiomático”.
-* [ ] Padronizar TSDoc em `lib/md/*` e `lib/github/*`.
-* [ ] Ativar `remark-lint` + `markdownlint`.
-* [ ] Criar guia “Como contribuir” (flows de PR, agents, convenções).
