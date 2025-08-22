@@ -8,7 +8,7 @@ import { test, expect } from 'vitest';
   getElementById: (_: string): HTMLElement | null => null
 } as Document;
 
-const { __TESTING__ } = await import('../src/github/fetch.js');
+const { __TESTING__ } = await import('../src/github/fetch.ts');
 const { discoverDefaultBranch } = __TESTING__ as {
   discoverDefaultBranch: (owner: string, repo: string) => Promise<string>;
 };
