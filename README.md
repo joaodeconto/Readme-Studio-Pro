@@ -14,9 +14,10 @@ pnpm dev
 
 ### Docs relacionados
 
-- [CHANGELOG](CHANGELOG.md)
-- [Guia de Contribuição](CONTRIBUTING.md)
-- [Código de Conduta](CODE_OF_CONDUCT.md)
+- [CHANGELOG](CHANGELOG.md) — histórico de versões e marcos.
+- [Guia de Contribuição](CONTRIBUTING.md) — passos para configurar ambiente e abrir PR.
+- [Código de Conduta](CODE_OF_CONDUCT.md) — padrões de convivência.
+
 - [Deploy](docs/deploy.md)
 - [Pitch](docs/pitch.md)
 - [validateRelPaths performance](docs/validateRelPaths-performance.md)
