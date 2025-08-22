@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { discoverRepos } from "@/github/fetch.js";
+import { discoverRepos } from "@/github/fetch";
 
 // Repository item as returned by the backend
 interface Repo {

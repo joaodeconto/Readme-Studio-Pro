@@ -4,6 +4,8 @@ agent_v1.md → Documento original, intacto.
 
 /AGENTS/ → Pasta com agentes por domínio.
 
+README.md → Guia principal do projeto (propósito, setup, scripts).
+
 🤖 Agentes Ativos
 agent_docs.md
 
@@ -11,7 +13,7 @@ Escopo: explicar e documentar
 
 Responsabilidades:
 
-Comentar códigos, ponderar decisões, compreender 
+Comentar códigos, ponderar decisões, compreender
 
 agent_ui.md
 

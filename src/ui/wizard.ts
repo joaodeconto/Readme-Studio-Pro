@@ -1,4 +1,4 @@
-import { discoverInstallations, discoverRepos, discoverReadme, fetchReadme } from '../github/fetch.js';
+import { discoverInstallations, discoverRepos, discoverReadme, fetchReadme } from '../github/fetch';
 import { startAuthFlow } from '../github/auth.js';
 
 interface Installation { installation_id: number; account_login?: string }
@@ -107,7 +107,7 @@ export async function openWizard(): Promise<WizardResult | null> {
     async function step3(): Promise<void> {
       let info: ReadmeInfo;
       try {
-        info = await discoverReadme(Number(installation_id), owner, repo);
+        info = await discoverReadme(owner, repo);
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
         alert(

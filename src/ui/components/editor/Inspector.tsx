@@ -6,7 +6,8 @@ import SnippetLibrary from './panels/SnippetLibrary';
 import LintPanel from './panels/LintPanel';
 import AIPanel from './panels/AIPanel';
 import { useState, useEffect } from "react";
-import AssetPicker, { type Asset } from "./panels//AssetPicker";
+import AssetPicker, { type Asset } from "./panels/AssetPicker";
+import { log } from '@/utils/log';
 
 const tabs = [
   { id: 'toc', label: 'TOC' },
@@ -30,7 +31,7 @@ export default function Inspector() {
 
   // exemplo de seleção de asset (aqui só log; integre com seu editor se quiser)
   const handleSelect = (asset: Asset) => {
-    console.log("Selecionado:", asset);
+    log('Selecionado:', asset);
     // Ex.: inserir markdown na área de edição
     // setContent(prev => `${prev}\n\n![${asset.name}](${asset.url})`);
   };

@@ -8,7 +8,8 @@ log('Env', {
   href: location.href,
 });
 
-const rootEl = document.getElementById('app');
+const rootEl =
+  typeof document !== 'undefined' ? document.getElementById('app') : null;
 if (rootEl) {
   createRoot(rootEl).render(<App />);
 }
