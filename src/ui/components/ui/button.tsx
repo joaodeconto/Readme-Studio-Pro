@@ -6,6 +6,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export default function Button({
   children,
   variant = 'default',
+  type = 'button',
   ...props
 }: React.PropsWithChildren<ButtonProps>) {
   const base = 'px-3 py-1 rounded';
@@ -15,7 +16,7 @@ export default function Button({
     outline: 'border border-accent text-accent',
   };
   return (
-    <button className={`${base} ${styles[variant] ?? styles.default}`} {...props}>
+    <button type={type} className={`${base} ${styles[variant] ?? styles.default}`} {...props}>
       {children}
     </button>
   );
