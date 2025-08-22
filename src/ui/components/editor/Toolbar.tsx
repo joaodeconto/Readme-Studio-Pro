@@ -62,13 +62,41 @@ export default function Toolbar({
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <Button variant="secondary" onClick={withView((v) => wrapSelection(v, '**'))}>
+      <Button
+        variant="secondary"
+        onClick={withView((v) => wrapSelection(v, '**'))}
+        aria-label="bold"
+      >
         <b>B</b>
       </Button>
-      <Button variant="secondary" onClick={withView(insertHeading)}>H1</Button>
-      <Button variant="secondary" onClick={withView(insertList)}>•</Button>
-      <Button variant="secondary" onClick={withView(insertCode)}>&lt;/&gt;</Button>
-      <Button variant="secondary" onClick={insertToc}>☰</Button>
+      <Button
+        variant="secondary"
+        onClick={withView(insertHeading)}
+        aria-label="heading"
+      >
+        H1
+      </Button>
+      <Button
+        variant="secondary"
+        onClick={withView(insertList)}
+        aria-label="unordered list"
+      >
+        •
+      </Button>
+      <Button
+        variant="secondary"
+        onClick={withView(insertCode)}
+        aria-label="code block"
+      >
+        &lt;/&gt;
+      </Button>
+      <Button
+        variant="secondary"
+        onClick={insertToc}
+        aria-label="table of contents"
+      >
+        ☰
+      </Button>
     </div>
   );
 }
