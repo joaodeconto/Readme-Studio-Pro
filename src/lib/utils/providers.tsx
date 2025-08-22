@@ -3,6 +3,7 @@
 
 import React, { type PropsWithChildren } from 'react'
 import type { PostHog } from 'posthog-js'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 
 // ⬇️ Se você estiver fazendo import dinâmico do PostHogProvider em outro arquivo,
@@ -20,6 +21,9 @@ export type PHProviderType = React.ComponentType<
 // (se você já tem isso em outro lugar, ajuste apenas o *as PHProviderType*)
 let PostHogProviderTyped: PHProviderType | null = null
 let posthogClient: PostHog | null = null
+
+// Shared query client for React Query
+const queryClient = new QueryClient()
 
 
 // Exemplo de inicialização (opcional) — ajuste ao seu projeto
@@ -42,15 +46,21 @@ if (typeof window !== 'undefined') {
 
 // 3) Provider raiz da sua aplicação
 // Uso: envolva seu layout com <Providers> ... </Providers>
+/**
+ * Global context providers for the application. Supplies a shared React Query client
+ * and nests the PostHog analytics provider when available.
+ */
 export function Providers({ children }: PropsWithChildren) {
     // Conteúdo bruto (sem PostHog)
     const content = <>{children}</>
 
-    // Se não deu para inicializar PostHog, retorna direto
-    if (!PostHogProviderTyped || !posthogClient) return content
+    // ✅ Garante PostHog somente se inicializado
+    const wrapped =
+        PostHogProviderTyped && posthogClient ? (
+            <PostHogProviderTyped client={posthogClient}>{content}</PostHogProviderTyped>
+        ) : (
+            content
+        )
 
-    // ✅ Aqui o tipo do componente aceita `children`
-    return (
-        <PostHogProviderTyped client={posthogClient}>{content}</PostHogProviderTyped>
-    )
+    return <QueryClientProvider client={queryClient}>{wrapped}</QueryClientProvider>
 }
