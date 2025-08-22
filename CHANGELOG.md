@@ -8,6 +8,7 @@ e este projeto adere a [Semantic Versioning](https://semver.org/lang/pt-BR/).
 ## [Unreleased]
 ### Adicionado
 - Guia de contribuição, código de conduta e changelog inicial para orientar a comunidade.
+- Documento de User Flow (v1) detalhando caminho de usuários (docs/user-flow.md).
 
 ## [0.1.0] - 2025-08-20
 ### Adicionado

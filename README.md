@@ -20,6 +20,7 @@ pnpm dev
 
 - [Deploy](docs/deploy.md)
 - [Pitch](docs/pitch.md)
+- [User Flow (v1)](docs/user-flow.md)
 - [validateRelPaths performance](docs/validateRelPaths-performance.md)
 
 ## Scripts

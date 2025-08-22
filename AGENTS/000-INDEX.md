@@ -8,6 +8,7 @@ README.md → Guia principal do projeto (propósito, setup, scripts).
 CHANGELOG.md → Histórico de versões, datas e marcos do projeto.
 CONTRIBUTING.md → Como configurar ambiente, estilo de código e fluxo de PR.
 CODE_OF_CONDUCT.md → Regras de convivência e canais de denúncia.
+docs/user-flow.md → Fluxo de usuário (v1) para Readme Studio.
 
 🤖 Agentes Ativos
 agent_docs.md
