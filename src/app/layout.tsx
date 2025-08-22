@@ -1,3 +1,4 @@
+"use client"
 import { PostHogProvider as PHRaw } from 'posthog-js/react'
 import type { PostHog } from 'posthog-js'
 import posthog from 'posthog-js'
