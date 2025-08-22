@@ -1,5 +1,5 @@
 import { PostHogProvider as PHRaw } from 'posthog-js/react'
-type PHProviderType = React.ComponentType<React.PropsWithChildren<{ client: any }>>
+type PHProviderType = React.ComponentType<React.PropsWithChildren<{ client: unknown }>>
 const PostHogProvider = PHRaw as unknown as PHProviderType
 import AppSidebar from '@ui/components/shell/AppSidebar';
 

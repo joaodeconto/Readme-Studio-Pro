@@ -48,10 +48,10 @@ export default function AnalysisBar({
           {JSON.stringify(analysis.issues, null, 2)}
         </pre>
       )}
-      {diffHtml && (
+      {preview && (
         <div
           className="diff md p-2 overflow-auto border rounded"
-          dangerouslySetInnerHTML={{ __html: diffHtml }}
+          dangerouslySetInnerHTML={{ __html: preview }}
         />
       )}
     </div>
