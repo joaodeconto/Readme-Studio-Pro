@@ -1,4 +1,4 @@
-import { discoverInstallations, discoverRepos, discoverReadme, fetchReadme } from '../github/fetch';
+import { discoverInstallations, discoverRepos, discoverReadme, fetchReadme } from '../lib/github/fetch';
 import { startAuthFlow } from '../github/auth.js';
 
 interface Installation { installation_id: number; account_login?: string }

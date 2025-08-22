@@ -14,7 +14,7 @@ export default function AnalysisBar({
   const { content } = useEditorStore();
   const [analysis, setAnalysis] = useState<LintMarkdownResult | null>(null);
   const [original, setOriginal] = useState('');
-  const [diffHtml, setDiffHtml] = useState<string | null>(null);
+  //const [diffHtml, setDiffHtml] = useState<string | null>(null);
   const { setLintIssues, setAISuggestions } = useAnalysisStore();
 
   const analyze = () => {

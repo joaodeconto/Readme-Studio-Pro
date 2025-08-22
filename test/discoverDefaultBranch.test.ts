@@ -16,7 +16,7 @@ vi.mock('octokit', () => ({
   })),
 }));
 
-const { __TESTING__ } = await import('../src/github/fetch.ts');
+const { __TESTING__ } = await import('../src/lib/github/fetch.js');
 const { discoverDefaultBranch } = __TESTING__ as {
   discoverDefaultBranch: (owner: string, repo: string) => Promise<string>;
 };

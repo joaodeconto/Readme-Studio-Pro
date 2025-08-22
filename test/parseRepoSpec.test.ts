@@ -4,7 +4,7 @@ import { test, expect } from 'vitest';
   getItem: (_: string): string | null => null
 } as Storage;
 
-const { parseRepoSpec: parseRepoSpecUntyped } = await import('../src/github/fetch.ts');
+const { parseRepoSpec: parseRepoSpecUntyped } = await import('../src/lib/github/fetch.js');
 
 interface RepoSpec {
   owner?: string;
