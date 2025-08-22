@@ -37,7 +37,7 @@ export default function Inspector() {
         {inspectorTab === 'toc' && <TocPanel />}
         {inspectorTab === 'emoji' && <EmojiPanel />}
         {inspectorTab === 'snippets' && <SnippetLibrary />}
-        {inspectorTab === 'assets' && <AssetPicker />}
+        {inspectorTab === 'assets' && <AssetPicker{} />}
         {inspectorTab === 'lint' && <LintPanel />}
         {inspectorTab === 'ai' && <AIPanel />}
       </div>

@@ -36,6 +36,16 @@ body {
   font: 500 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto
 }
 
+.diff ins {
+  background: rgba(16, 185, 129, .15);
+  text-decoration: none;
+}
+
+.diff del {
+  background: rgba(239, 68, 68, .15);
+  text-decoration: line-through;
+}
+
 #landing {
   display: flex;
   flex-direction: column;
@@ -313,16 +323,21 @@ main {
     height: 50vh
   }
 }
+
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.8);
+  background: rgba(0, 0, 0, .8);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 50;
 }
-.modal[hidden] { display: none; }
+
+.modal[hidden] {
+  display: none;
+}
+
 .modal .box {
   background: var(--panel);
   border: 1px solid var(--ring);
@@ -332,22 +347,24 @@ main {
   max-height: 90%;
   overflow: auto;
 }
+
 .modal .actions {
   margin-top: 12px;
   display: flex;
   gap: 8px;
   justify-content: flex-end;
 }
-=======
+
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.6);
+  background: rgba(0, 0, 0, .6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
 }
+
 .modal .box {
   background: var(--panel);
   border: 1px solid var(--ring);
@@ -355,11 +372,13 @@ main {
   padding: 20px;
   width: min(90%, 420px);
 }
+
 .modal .progress {
   text-align: right;
   color: var(--muted);
   margin-bottom: 8px;
 }
+
 .repo-list {
   list-style: none;
   margin: 8px 0 0;
@@ -367,18 +386,22 @@ main {
   max-height: 200px;
   overflow: auto;
 }
+
 .repo-list li {
   padding: 6px;
   border-radius: 8px;
   cursor: pointer;
 }
+
 .repo-list li:hover {
   background: var(--soft);
 }
+
 .modal label {
   display: block;
   margin: 8px 0;
 }
+
 .modal input {
   width: 100%;
 }
