@@ -3,12 +3,12 @@ import Link from 'next/link';
 import { BookOpen, Boxes, Settings, GitBranch, Layout, Bot } from 'lucide-react';
 
 const items = [
-  { href: '/web', icon: Layout, label: 'Dashboard' },
-  { href: '/web/repositories', icon: GitBranch, label: 'Repositories' },
-  { href: '/web/editor/owner/repo', icon: BookOpen, label: 'README Studio' },
-  { href: '/web/templates', icon: Boxes, label: 'Templates' },
-  { href: '/web/automations', icon: Bot, label: 'Automations' },
-  { href: '/web/settings', icon: Settings, label: 'Settings' },
+  { href: '/pages', icon: Layout, label: 'Dashboard' },
+  { href: '/pages/repositories', icon: GitBranch, label: 'Repositories' },
+  { href: '/pages/editor/owner/repo', icon: BookOpen, label: 'README Studio' },
+  { href: '/pages/templates', icon: Boxes, label: 'Templates' },
+  { href: '/pages/automations', icon: Bot, label: 'Automations' },
+  { href: '/pages/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function AppSidebar() {

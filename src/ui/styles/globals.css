@@ -2,15 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-html,
-body,
-#__next {
-  height: 100%;
-}
+html, body, #__next { height: 100%; }
+
 body {
   @apply bg-white text-base dark:bg-neutral-900 dark:text-base;
   font-feature-settings: 'liga' 1, 'calt' 1;
 }
-.prose-tight p {
-  line-height: 1.35;
-}
+
+.prose-tight p { line-height: 1.35; }

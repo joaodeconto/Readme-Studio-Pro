@@ -29,7 +29,7 @@ export default function RepositoriesPage() {
   return (
     <RepoList
       installationId={installationId}
-      onSelect={(r) => router.push(`/web/editor/${r.owner}/${r.repo}`)}
+      onSelect={(r) => router.push(`/pages/editor/${r.owner}/${r.repo}`)}
     />
   );
 }

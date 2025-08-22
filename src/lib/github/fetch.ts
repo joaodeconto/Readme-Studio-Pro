@@ -35,7 +35,7 @@ function getOctokit(): Octokit {
     cachedToken = token || null
     cachedOctokit = new Octokit(token ? { auth: token } : {})
   }
-    return cachedOctokit;
+  return cachedOctokit;
 }
 
 function b64ToText(b64: string): string {
@@ -169,11 +169,16 @@ export function parseRepoSpec(spec: string): {
       }
       return { owner, repo }
     }
-  } catch {}
-  const m = spec.match(/^[\w.-]+\/[\w.-]+(?:@([^:]+))?(?::(.+))?$/)
+  } catch { }
+  const m = spec.match(/^([\w.-]+)\/([\w.-]+)(?:@([^:]+))?(?::(.+))?$/);
   return m
-    ? { owner: spec.split('/')[0], repo: spec.split('/')[1].replace(/\.git$/, ''), branch: m[1], path: m[2] }
-    : null
+    ? {
+      owner: m[1],
+      repo: m[2].replace(/\.git$/, ''),
+      branch: m[3],
+      path: m[4],
+    }
+    : null;
 }
 
 async function tryRaw(
