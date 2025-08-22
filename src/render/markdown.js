@@ -1,43 +1,54 @@
-import { slug } from '../utils/slug';
-import { emojifyTitle } from '../features/emoji';
+import MarkdownIt from 'markdown-it';
+import markdownItAnchor from 'markdown-it-anchor';
+import markdownItTaskLists from 'markdown-it-task-lists';
+import markdownItTable from 'markdown-it-multimd-table';
+import markdownItGithubAlerts from 'markdown-it-github-alerts';
 import DOMPurify from 'isomorphic-dompurify';
 
-function linkify(s) { return s.replace(/\bhttps?:\/\/[^\s)]+/g, url => `<a href="${url}" target="_blank" rel="noopener">${url}</a>`); }
+import { slug } from '../utils/slug';
+import { emojifyTitle } from '../features/emoji';
+
+const md = MarkdownIt({ linkify: true })
+  .use(markdownItTaskLists)
+  .use(markdownItTable)
+  .use(markdownItGithubAlerts)
+  .use(markdownItAnchor, {
+    slugify: (s) => slug(s),
+  });
+
+const defaultLinkOpen = md.renderer.rules.link_open || function (tokens, idx, options, env, self) {
+  return self.renderToken(tokens, idx, options);
+};
+
+md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+  const token = tokens[idx];
+  token.attrSet('target', '_blank');
+  token.attrSet('rel', 'noopener');
+  return defaultLinkOpen(tokens, idx, options, env, self);
+};
 
 export function mdToHtml(src, { emojify = false } = {}) {
-  const wrapHeading = (level, t) => {
-    const text = emojify ? emojifyTitle(t, level, true) : t;
-    const id = slug(t);
-    return `<h${level} id="${id}">${text}</h${level}>`;
-  };
-  src = src
-    .replace(/^######\s?(.+)$/gm, (m, t) => wrapHeading(6, t))
-    .replace(/^#####\s?(.+)$/gm, (m, t) => wrapHeading(5, t))
-    .replace(/^####\s?(.+)$/gm, (m, t) => wrapHeading(4, t))
-    .replace(/^###\s?(.+)$/gm, (m, t) => wrapHeading(3, t))
-    .replace(/^##\s?(.+)$/gm, (m, t) => wrapHeading(2, t))
-    .replace(/^#\s?(.+)$/gm, (m, t) => wrapHeading(1, t));
+  const env = {};
+  const tokens = md.parse(src, env);
 
-  src = src
-    .replace(/^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(.*)$/gmi, '<blockquote><b>$1:</b> $2</blockquote>')
-    .replace(/^>\s?(.+)$/gm, '<blockquote>$1</blockquote>');
+  if (emojify) {
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      if (t.type === 'heading_open') {
+        const level = Number(t.tag.slice(1));
+        const inline = tokens[i + 1];
+        if (inline && inline.type === 'inline') {
+          inline.content = emojifyTitle(inline.content, level, true);
+          inline.children?.forEach((child) => {
+            if (child.type === 'text') {
+              child.content = emojifyTitle(child.content, level, true);
+            }
+          });
+        }
+      }
+    }
+  }
 
-  src = src.replace(/^\s*[-*]\s+(.+)$/gm, '<li>$1</li>');
-  src = src.replace(/(<li>[\s\S]*?<\/li>\n?)+/g, m => `<ul>${m}</ul>`);
-
-  src = src.replace(/^\|(.+)\|$/gm, (m, row) => {
-    const cells = row.split('|').map(c => c.trim()).filter(Boolean);
-    return '<tr>' + cells.map(c => '<td>' + c + '</td>').join('') + '</tr>';
-  });
-  src = src.replace(/(<tr>.*?<\/tr>\n?)+/gs, m => '<table>' + m + '</table>');
-
-  src = src
-    .split(/\n{2,}/)
-    .map(blk =>
-      /^\s*<(h\d|ul|ol|pre|table|blockquote|details|img|a)/.test(blk)
-        ? blk
-        : `<p>${linkify(blk).replace(/\n/g, '<br>')}</p>`
-    )
-    .join('\n');
-  return DOMPurify.sanitize(src);
+  const html = md.renderer.render(tokens, md.options, env);
+  return DOMPurify.sanitize(html);
 }
