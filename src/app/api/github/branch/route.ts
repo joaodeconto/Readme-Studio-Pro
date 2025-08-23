@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { githubApp } from "@/lib/github/app";
-import { findInstallationIdForRepo } from "@/lib/github/installations";
+import { findAuthorizedInstallationIdForRepo } from "@/lib/github/installations";
+import { getSessionUser } from "@/lib/auth/session";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -14,6 +15,11 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
+  const session = await getSessionUser();
+  if (!session) {
+    return NextResponse.json({ error: "UNAUTHENTICATED" }, { status: 401 });
+  }
+
   const json = await req.json().catch(() => null);
   const parsed = schema.safeParse(json);
   if (!parsed.success) {
@@ -26,7 +32,14 @@ export async function POST(req: Request) {
   const { owner, repo, newBranch, fromSha } = parsed.data;
 
   try {
-    const installationId = await findInstallationIdForRepo(owner, repo);
+    const installationId = await findAuthorizedInstallationIdForRepo(
+      owner,
+      repo,
+      session.id,
+    );
+    if (!installationId) {
+      return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+    }
     const octokit = await githubApp.getInstallationOctokit(installationId);
     const { data } = await octokit.request(
       "POST /repos/{owner}/{repo}/git/refs",
