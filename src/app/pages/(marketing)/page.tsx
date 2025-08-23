@@ -29,6 +29,7 @@ export default function Marketing() {
         <Link href="/changelog">Changelog</Link>
         <Link href="/examples">Examples Gallery</Link>
       </div>
+    (stub)
     </main>
   );
 }
