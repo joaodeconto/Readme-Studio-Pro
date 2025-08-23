@@ -6,12 +6,18 @@
 
 import { NextResponse } from "next/server";
 import { githubApp } from "@/lib/github/app";
-import { prisma } from "@/lib/db/client";
+import { getSessionUser } from "@/lib/auth/session";
+import { findAuthorizedInstallationIdForRepo } from "@/lib/github/installations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
+  const session = await getSessionUser();
+  if (!session) {
+    return NextResponse.json({ error: "UNAUTHENTICATED" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
   const owner = searchParams.get("owner");
   const repo = searchParams.get("repo");
@@ -25,12 +31,13 @@ export async function GET(req: Request) {
     );
   }
 
-  const installationId = await findInstallationIdForRepo(owner, repo);
+  const installationId = await findAuthorizedInstallationIdForRepo(
+    owner,
+    repo,
+    session.id,
+  );
   if (!installationId) {
-    return NextResponse.json(
-      { error: "Installation not found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   }
   const octokit = await githubApp.getInstallationOctokit(installationId);
 
@@ -123,14 +130,4 @@ export async function GET(req: Request) {
     const message = err.response?.data?.message || err.message || "Internal error";
     return NextResponse.json({ error: message }, { status });
   }
-}
-
-async function findInstallationIdForRepo(
-  owner: string,
-  repo: string,
-): Promise<number | null> {
-  const link = await prisma.repoLink.findFirst({
-    where: { owner, repo },
-  });
-  return link?.installationId ?? null;
 }
