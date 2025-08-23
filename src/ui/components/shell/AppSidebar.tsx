@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { BookOpen, Boxes, Settings, GitBranch, Layout, Bot } from 'lucide-react';
 
 const items = [
-  { href: '/pages/Marketing', icon: Layout, label: 'Dashboard' },
+  { href: '/pages/(marketing)', icon: Layout, label: 'Dashboard' },
   { href: '/pages/repositories', icon: GitBranch, label: 'Repositories' },
   { href: '/pages/editor/owner/repo', icon: BookOpen, label: 'Editor' },
   { href: '/pages/templates', icon: Boxes, label: 'Templates' },

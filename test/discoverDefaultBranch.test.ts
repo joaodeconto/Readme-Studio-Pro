@@ -1,9 +1,6 @@
 import { test, expect, vi } from 'vitest';
 
 
-(globalThis as unknown as { localStorage: Storage }).localStorage = {
-  getItem: (_: string): string | null => null,
-};
 
 (globalThis as unknown as { document: Document }).document = {
   getElementById: (_: string): HTMLElement | null => null,
